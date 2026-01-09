@@ -1,0 +1,45 @@
+.timeline-wrapper {
+  height: 650dvh;
+  background: #a3a3a3;
+  font-family: Arial, sans-serif;
+  /* margin-top: 200vh; */
+}
+
+.timeline-heading {
+  text-align: center;
+  color: #fff;
+  /* margin-top: 100px; */
+}
+
+.timeline-svg {
+  max-width: 900px;
+  display: block;
+  margin: 60vh auto 10dvh;
+  overflow: visible;
+}
+
+.timeline-line {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.timeline-path {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 10;
+  /* 🔑 prevents initial paint */
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.timeline-ball {
+  fill: #fff;
+  visibility: hidden;
+}
+
+.timeline-text {
+  fill: #fff;
+  font-size: 15px;
+  visibility: hidden;
+}
