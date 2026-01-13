@@ -1,0 +1,34 @@
+ .tech-stack-container { 
+      font-family: "Signika Negative", sans-serif; 
+      font-weight: 300;
+      margin: 0;
+      padding: 40px;
+      background-color: #F4F4F4;
+      height: 550dvh;
+     
+    }
+
+
+    .cards {
+      margin-left: 100px;
+    }
+
+    .card {
+      height: 200px;
+      width: 400px;
+      background: white;
+      font-size: 36px;
+      justify-content: center;
+       color: #333 !important;
+    }
+
+    .card:first-child {
+      box-shadow: 0px 0px 30px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .card-container{
+      width: 100%;
+      background-color: rgb(255, 214, 178);
+      /* padding: 10px; */
+      margin-bottom: 50px;
+    }
