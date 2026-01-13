@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
-import "../style/techStack.css";
+import "../style/TechStack.css";
 
 gsap.registerPlugin(ScrollTrigger);
 
