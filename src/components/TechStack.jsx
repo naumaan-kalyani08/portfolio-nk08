@@ -27,7 +27,7 @@ export default function StackingCards() {
                   start: "top bottom-=100",
                   end: "bottom top+=200",
                   scrub: true,
-                  markers: true,
+                  // markers: true, // Only for development debugging
                   invalidateOnRefresh: true,
                 },
               });

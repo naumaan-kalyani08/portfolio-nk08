@@ -1,5 +1,28 @@
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* ═══════════════════════════════════════════════════════════════════
+   BASE RESET & GLOBAL OPTIMIZATIONS
+   ═══════════════════════════════════════════════════════════════════ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CROSS-DEVICE SMOOTH SCROLLING
+   ═══════════════════════════════════════════════════════════════════ */
+html,
+body {
+  /* iOS Safari: Enables momentum-based scrolling (the "rubber band" effect)
+     Without this, iOS scroll feels "sticky" and unresponsive */
+  -webkit-overflow-scrolling: touch;
+
+  /* Enables native smooth scrolling as fallback when JS is disabled
+     Lenis overrides this, but it's good progressive enhancement */
+  scroll-behavior: smooth;
+
+  /* Prevents horizontal scroll from accidental touch swipes */
+  overflow-x: hidden;
+
+  /* Prevents iOS text size adjustment on orientation change */
+  -webkit-text-size-adjust: 100%;
 }
