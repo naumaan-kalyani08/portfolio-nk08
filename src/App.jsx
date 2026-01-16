@@ -9,6 +9,7 @@ import HorizontalScroll from "./components/HorizontalScroll";
 import TextRevealOnScroll from "./components/TextRevealOnScroll";
 import ScrollProgressBar from "./components/ScrollProgressBar";
 import TechStack from "./components/TechStack";
+import Header from "./components/Header";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -57,6 +58,7 @@ const App = () => {
   return (
     <>
       <ScrollProgressBar/>
+      <Header/>
       <PageLoader />
       <HorizontalScroll />
       <TextRevealOnScroll />
