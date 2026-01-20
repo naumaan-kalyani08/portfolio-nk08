@@ -36,7 +36,7 @@ const PageLoader = () => {
   }, []);
 
   return (
-    <secction id="home">
+    <section id="home">
       <div className="custom-container">
         {[...Array(10)].map((_, index) => (
           <div
@@ -58,7 +58,7 @@ const PageLoader = () => {
           {/* <ScrollAlert additionalStyle="text-reveal-scroll-icon   scroll-icon-spacing custom-fade-in upper-mouse-scroll" /> */}
         </div>
       </div>
-    </secction>
+    </section>
   );
 };
 

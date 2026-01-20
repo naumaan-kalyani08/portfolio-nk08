@@ -104,7 +104,7 @@ export default function StackingCards() {
       </div>
     </div>
 
-      <div classNameName="container2"></div>
+      <div className="container2"></div>
     </div>
   );
 }

@@ -3,24 +3,15 @@ import { useEffect, useState } from "react";
 const ScrollProgressBar = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
 
-  useEffect(() => {
-    const updateScrollProgress = () => {
-      const scrollTop = window.scrollY;
-      const docHeight =
-        document.documentElement.scrollHeight - window.innerHeight;
-      const scrollPercent = (scrollTop / docHeight) * 100;
-      setScrollProgress(scrollPercent);
-    };
-
-    let animationId;
-    const raf = () => {
-      updateScrollProgress();
-      animationId = requestAnimationFrame(raf);
-    };
-    animationId = requestAnimationFrame(raf);
-
-    return () => cancelAnimationFrame(animationId);
-  }, []);
+ useEffect(() => {
+  const updateScrollProgress = () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    setScrollProgress((scrollTop / docHeight) * 100);
+  };
+  window.addEventListener("scroll", updateScrollProgress, { passive: true });
+  return () => window.removeEventListener("scroll", updateScrollProgress);
+}, []);
 
   return (
     <div
