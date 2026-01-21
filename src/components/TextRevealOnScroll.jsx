@@ -25,7 +25,6 @@ export default function TextRevealOnScroll() {
 
     if (!section || !textElement) return;
 
-    // ---- Split text into characters ----
     const splitTextToChars = (el) => {
       const nodes = [...el.childNodes];
       el.innerHTML = "";
