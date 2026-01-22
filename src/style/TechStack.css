@@ -32,3 +32,9 @@
       /* padding: 10px; */
       margin-bottom: 50px;
     }
+
+    @media (max-width: 450px) {
+      .card-container {
+        margin-bottom: 100px;
+      }
+    }
