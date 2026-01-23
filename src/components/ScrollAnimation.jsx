@@ -13,17 +13,17 @@ export default function ScrollAnimation() {
   const timelineSvgRef = useRef(null);
 
   useLayoutEffect(() => {
-    // LENIS
-    // const lenis = new Lenis({
-    //   smooth: true,
-    //   duration: 1.2,
-    // });
+    // Detect mobile for performance optimizations
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) 
+      || window.innerWidth < 768;
 
-    function raf(time) {
-      // lenis.raf(time);
-      requestAnimationFrame(raf);
+    // Configure GSAP for better mobile performance
+    if (isMobile) {
+      ScrollTrigger.config({
+        limitCallbacks: true, // Reduces callback frequency
+        ignoreMobileResize: true, // Prevents resize thrashing
+      });
     }
-    requestAnimationFrame(raf);
 
     ScrollTrigger.scrollerProxy(document.body, {
       scrollTop(value) {
@@ -80,7 +80,10 @@ export default function ScrollAnimation() {
                   trigger: "#timeline-svg",
                   start: "top center",
                   end: "bottom center",
-                  scrub: true,
+                  // Mobile: use integer scrub for better perf (less smooth but faster)
+                  // Desktop: use true for smoother animation
+                  scrub: isMobile ? 1 : true,
+                  fastScrollEnd: true, // Helps with fast scrolling
                 },
               })
               .to(".ball01", { autoAlpha: 1, duration: 0.05 })
