@@ -117,6 +117,8 @@ export default function TextRevealOnScroll() {
           opacity: 1,
           stagger: 0.015,
           duration: 0.5,
+          force3D: true,
+          willChange: "opacity",
         },
         0 // Start at beginning
       );
@@ -128,8 +130,9 @@ export default function TextRevealOnScroll() {
           color: "#ff0000",
           stagger: 0.015,
           duration: 0.5,
+          force3D: true,
         },
-        0.1 // Slightly delayed
+        0 // Start at same time as opacity for consistency
       );
 
       // Add image animations to the same timeline

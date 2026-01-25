@@ -18,9 +18,14 @@
 .char {
   display: inline-block;
   opacity: 0.3;
+  will-change: opacity, color;
+  transform: translate3d(0, 0, 0);
 }
 
 .fade-text span .char {
+  color: #ffffff;
+}
+.char--highlight {
   color: #ffffff;
 }
 .span{
