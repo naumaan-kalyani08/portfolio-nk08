@@ -1,0 +1,41 @@
+@import url("https://fonts.googleapis.com/css2?family=Monoton&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #060918;
+  /* background: #e8e8e8; */
+  /* overflow: hidden; */
+}
+
+.boxes {
+  width: 100vw;
+  height: 10vh;
+  background: #282828;
+  position: relative;
+  z-index: 100;
+}
+
+.wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 2em;
+  position: absolute;
+  top: 30%;
+  z-index: 10;
+  flex-wrap: wrap;
+}
+
+.wrapper .h1 {
+  position: relative;
+  color: #cacaca;
+  font-family: "Monoton", sans-serif;
+  font-size: 10em;
+  line-height: 1.125;
+  transform: translateY(calc(-75vh));
+}
