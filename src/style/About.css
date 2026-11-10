@@ -1,0 +1,70 @@
+.text-section {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  padding: 96px var(--gutter) 48px;
+  overflow: hidden;
+}
+
+.text-container {
+  display: flex;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  align-items: stretch;
+  gap: 4vw;
+}
+
+.text-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.about__eyebrow {
+  margin-bottom: 28px;
+}
+
+.fade-text {
+  font-family: var(--font-brand);
+  font-size: clamp(1.6rem, 3.6vw, 3.6rem);
+  font-weight: 500;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+}
+
+.word {
+  opacity: 0.18;
+  color: #fff;
+}
+
+.w-50 {
+  width: 50%;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .text-container {
+    flex-direction: column-reverse;
+    gap: 1.5rem;
+  }
+
+  .w-50 {
+    width: 100%;
+  }
+
+  .right {
+    min-height: 38vh;
+  }
+
+  .fade-text {
+    font-size: clamp(1.35rem, 6.2vw, 2rem);
+  }
+}

@@ -1,0 +1,105 @@
+import { useEffect } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { prefersReducedMotion, isSmallScreen } from "../lib/scroll";
+
+/**
+ * Mounts a lazily-loaded Three.js scene into `containerRef`.
+ *
+ * Performance guarantees:
+ *  - three.js is code-split: it's only downloaded when the scene is requested.
+ *  - Rendering runs on the shared GSAP ticker (one rAF loop for Lenis + GSAP + WebGL).
+ *  - The loop stops when the canvas is off-screen or the tab is hidden.
+ *  - Pixel ratio is capped; mobile gets lighter geometry.
+ *  - With prefers-reduced-motion, a single static frame is rendered.
+ *
+ * A scene module must export `createScene(container, { isMobile, reduced })`
+ * returning `{ resize(w, h), update(time, dt), setPointer(x, y), setProgress(p), dispose() }`.
+ */
+export default function useThreeScene(containerRef, loadScene, { progressStart = "top top", progressEnd = "bottom top", onReady } = {}) {
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return undefined;
+
+    const reduced = prefersReducedMotion();
+    let scene = null;
+    let disposed = false;
+    let inView = false;
+    let running = false;
+
+    const tick = (time, deltaMs) => scene.update(time, Math.min(deltaMs, 64) / 1000);
+
+    const start = () => {
+      if (running || !scene || !inView || document.hidden || reduced) return;
+      running = true;
+      gsap.ticker.add(tick);
+    };
+
+    const stop = () => {
+      if (!running) return;
+      running = false;
+      gsap.ticker.remove(tick);
+    };
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+        if (inView) start();
+        else stop();
+      },
+      { rootMargin: "120px 0px" }
+    );
+    io.observe(container);
+
+    const onVisibility = () => (document.hidden ? stop() : start());
+    document.addEventListener("visibilitychange", onVisibility);
+
+    const resize = () => {
+      if (!scene) return;
+      scene.resize(container.clientWidth, container.clientHeight);
+      if (reduced) scene.update(0, 0);
+    };
+    const ro = new ResizeObserver(resize);
+    ro.observe(container);
+
+    const onPointerMove = (event) => {
+      if (!scene) return;
+      scene.setPointer((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1);
+    };
+    if (!reduced) window.addEventListener("pointermove", onPointerMove, { passive: true });
+
+    const progressTrigger = ScrollTrigger.create({
+      trigger: container,
+      start: progressStart,
+      end: progressEnd,
+      onUpdate: (self) => scene?.setProgress(self.progress),
+    });
+
+    loadScene()
+      .then((mod) => {
+        if (disposed) return;
+        scene = mod.createScene(container, { isMobile: isSmallScreen(), reduced });
+        resize();
+        scene.update(0, 0);
+        onReady?.();
+        start();
+      })
+      .catch((error) => {
+        // WebGL unavailable or chunk failed — the page still works without 3D.
+        console.warn("[three] scene disabled:", error);
+      });
+
+    return () => {
+      disposed = true;
+      stop();
+      io.disconnect();
+      ro.disconnect();
+      progressTrigger.kill();
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pointermove", onPointerMove);
+      scene?.dispose();
+      scene = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+}

@@ -1,22 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { navItems, profile, socials as socialLinks } from "../data/content";
+import { getLenis, scrollToTarget } from "../lib/scroll";
 import "../style/Header.css";
 
-const menuItems = [
-  { href: "#home", label: "Home", number: "01" },
-  { href: "#about", label: "About", number: "02" },
-  { href: "#projects", label: "Projects", number: "03" },
-  { href: "#skills", label: "Skills", number: "04" },
-  { href: "#contact", label: "Contact", number: "05" },
-];
-
-const socialLinks = [
-  { label: "LinkedIn", href: "https://www.linkedin.com/" },
-  { label: "GitHub", href: "https://github.com/" },
-  { label: "Dribbble", href: "https://dribbble.com/" },
-];
-
-const cityLabel = "[YOUR CITY]";
-const emailAddress = "[YOUR EMAIL]";
+const menuItems = navItems.map((item, index) => ({ ...item, number: String(index + 1).padStart(2, "0") }));
+const cityLabel = profile.city;
+const emailAddress = profile.email;
 
 const getCurrentTimeLabel = () => {
   const now = new Date();
@@ -33,6 +22,7 @@ const getCurrentTimeLabel = () => {
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
   const [isHeroInView, setIsHeroInView] = useState(true);
   const [clockLabel, setClockLabel] = useState(getCurrentTimeLabel());
   const menuButtonRef = useRef(null);
@@ -72,13 +62,24 @@ export default function Header() {
     openMenu();
   };
 
-  const handleMenuItemClick = () => {
+  const handleMenuItemClick = (event, href) => {
+    event.preventDefault();
     closeMenu();
+    // Restart Lenis *before* scrolling — start() resets any in-flight scroll.
+    getLenis()?.start();
+    scrollToTarget(href);
   };
 
   useEffect(() => {
+    let lastY = window.scrollY;
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 80);
+      const y = window.scrollY;
+      setIsScrolled(y > 80);
+      // Hide on scroll down, reveal on scroll up (ignore tiny jitters).
+      if (Math.abs(y - lastY) > 6) {
+        setIsHidden(y > lastY && y > 400);
+        lastY = y;
+      }
     };
 
     handleScroll();
@@ -156,7 +157,9 @@ export default function Header() {
       }
     };
 
-    document.body.style.overflow = "hidden";
+    // Lock scroll: stop Lenis (wheel/touch) and the native scroller.
+    getLenis()?.stop();
+    document.documentElement.classList.add("is-locked");
     document.addEventListener("keydown", handleKeyDown);
     window.addEventListener("resize", handleResize);
 
@@ -166,7 +169,8 @@ export default function Header() {
     }
 
     return () => {
-      document.body.style.overflow = "";
+      getLenis()?.start();
+      document.documentElement.classList.remove("is-locked");
       document.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("resize", handleResize);
     };
@@ -189,15 +193,30 @@ export default function Header() {
 
   return (
     <>
-      <header className={`site-header ${isScrolled ? "is-scrolled" : ""}`}>
+      <header className={`site-header ${isScrolled ? "is-scrolled" : ""} ${isHidden && !isMenuOpen ? "is-hidden" : ""}`}>
         <div className="site-header__inner">
-          <a className="brand" href="#home" aria-label="Home">
-            <span className="brand__mark">nk</span>
+          <a
+            className="brand"
+            href="#home"
+            aria-label="Home"
+            onClick={(event) => {
+              event.preventDefault();
+              scrollToTarget("#home");
+            }}
+          >
+            <span className="brand__mark">{profile.initials}</span>
             <span className="brand__reg" aria-hidden="true">®</span>
           </a>
 
           <div className="site-header__actions">
-            <a className="header-talk" href="#contact">
+            <a
+              className="header-talk"
+              href="#contact"
+              onClick={(event) => {
+                event.preventDefault();
+                scrollToTarget("#contact");
+              }}
+            >
               Let&apos;s talk
             </a>
 
@@ -260,7 +279,7 @@ export default function Header() {
             <ul className="site-menu__list">
               {menuItems.map((item, index) => (
                 <li key={item.href} className="site-menu__item" style={{ "--i": index }}>
-                  <a className="site-menu__link" href={item.href} onClick={handleMenuItemClick}>
+                  <a className="site-menu__link" href={item.href} onClick={(event) => handleMenuItemClick(event, item.href)}>
                     <span className="site-menu__number">{item.number}</span>
                     <span className="site-menu__label">{item.label}</span>
                   </a>

@@ -1,43 +1,31 @@
-body {
-    font-family: Arial, sans-serif;
-    /* height: 200vh; */
-    /* background-color: #212121; */
-    /* display: flex; */
-    /* justify-content: center; */
-    /* align-items: center; */
+.racesWrapper {
+  overflow: hidden;
+  padding: 2vh 0 6vh;
 }
 
-.racesWrapper{
-    overflow-x: hidden;
-}
-.space-50vh{
-    height: 50vh;
-}
-.space-10dvh{
-    height: 10dvh;
-}
-.space-100vh{
-    height: 100vh;
+.races {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  padding-left: 100vw;
+  will-change: transform;
 }
 
-.lightBG{
-    background-color: #2a2c39;
-    width: 100%;
+.races h2 {
+  padding-right: 8vw;
+  font-family: var(--font-display);
+  font-size: clamp(120px, 30vh, 360px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+  background-image: radial-gradient(circle farthest-corner at 10% 20%, #5fd6f6 0%, #6366f1 60%, #1e1b4b 120%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transform-origin: 50% 70%;
 }
 
-.races h2 ,.grd-txt{
-    font-size: 30dvh;
-    padding-right: 10dvw;
-    font-weight: 900; /* Optional */
-    background-image: radial-gradient( circle farthest-corner at 10% 20%,  rgba(0,152,155,1) 0.1%, rgba(0,94,120,1) 94.2% ); 
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent; /* Make text color transparent */
-    background-clip: text; /* For non-webkit browsers */
-}
-
-.races{
-    display: flex;
-    padding-left: 100dvw;
-    /* padding-left: 100vw; */
-    /* max-width: 1200px; */
+.races__spacer {
+  flex: 0 0 40vw;
 }

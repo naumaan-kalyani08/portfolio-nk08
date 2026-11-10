@@ -10,4 +10,13 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    // three.js is lazy-loaded in its own chunk (only fetched when a 3D scene mounts).
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => (id.includes("node_modules/three") ? "three" : undefined),
+      },
+    },
+  },
 })

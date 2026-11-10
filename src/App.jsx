@@ -1,80 +1,106 @@
 import { useEffect } from "react";
 import Lenis from "lenis";
 import gsap from "gsap";
-import ScrollTrigger from "gsap/ScrollTrigger";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
 
-import ScrollAnimation from "./components/ScrollAnimation";
-import PageLoader from "./components/PageLoader";
-import HorizontalScroll from "./components/HorizontalScroll";
-import TextRevealOnScroll from "./components/TextRevealOnScroll";
+import { marqueeItems } from "./data/content";
+import { prefersReducedMotion, setLenis } from "./lib/scroll";
+
 import ScrollProgressBar from "./components/ScrollProgressBar";
-import TechStack from "./components/TechStack";
+import Cursor from "./components/Cursor";
 import Header from "./components/Header";
+import Hero from "./components/Hero";
+import HorizontalScroll from "./components/HorizontalScroll";
+import About from "./components/About";
+import Stats from "./components/Stats";
+import Marquee from "./components/Marquee";
+import Services from "./components/Services";
+import Projects from "./components/Projects";
+import Experience from "./components/Experience";
+import Skills from "./components/Skills";
+import Contact from "./components/Contact";
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, useGSAP);
+// Don't recalculate every trigger when the mobile URL bar shows/hides.
+ScrollTrigger.config({ ignoreMobileResize: true });
 
 const App = () => {
+  // Smooth scrolling: Lenis drives native scroll, so ScrollTrigger needs no
+  // scrollerProxy — just an update on every Lenis scroll + a shared ticker.
   useEffect(() => {
-    const lenis = new Lenis({
-      smooth: true,
-      lerp: 0.1,            // Interpolation factor (0.1 = 10% per frame, faster response)
-      touchMultiplier: 2,   // Increases touch scroll sensitivity for mobile
-      wheelMultiplier: 1,   // Standard mouse wheel sensitivity
-    });
+    if (prefersReducedMotion()) return undefined;
 
-    gsap.ticker.add((time) => {
-      lenis.raf(time * 1000);
-    });
-    gsap.ticker.lagSmoothing(0); // Disable lag smoothing for buttery animations
+    const lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1, touchMultiplier: 1.5 });
+    setLenis(lenis);
+
+    const raf = (time) => lenis.raf(time * 1000);
     lenis.on("scroll", ScrollTrigger.update);
-    ScrollTrigger.scrollerProxy(document.body, {
-      scrollTop(value) {
-        return arguments.length
-          ? lenis.scrollTo(value, { immediate: true }) // SET: instant jump
-          : lenis.animatedScroll;                      // GET: smooth interpolated value
-      },
-      getBoundingClientRect() {
-        return {
-          top: 0,
-          left: 0,
-          width: window.innerWidth,
-          height: window.innerHeight,
-        };
-      },
-    });
-
-    ScrollTrigger.addEventListener("refresh", () => lenis.resize());
-    ScrollTrigger.refresh();
-
-    gsap.delayedCall(0.5, () => ScrollTrigger.refresh());
+    gsap.ticker.add(raf);
+    gsap.ticker.lagSmoothing(0);
 
     return () => {
-      gsap.ticker.remove(lenis.raf); // Remove from GSAP ticker
+      gsap.ticker.remove(raf); // same function reference → actually removed
       lenis.destroy();
-      ScrollTrigger.getAll().forEach(st => st.kill());
+      setLenis(null);
     };
   }, []);
 
+  // Re-measure once fonts & images have settled (affects pin distances).
+  useEffect(() => {
+    const refresh = () => ScrollTrigger.refresh();
+    window.addEventListener("load", refresh);
+    document.fonts?.ready?.then(refresh);
+    return () => window.removeEventListener("load", refresh);
+  }, []);
+
+  // Global, batched reveal animations. Runs after all children have created
+  // their pins, so trigger positions account for pin spacing.
+  useGSAP(() => {
+    const mm = gsap.matchMedia();
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      gsap.set("[data-reveal]", { autoAlpha: 0, y: 40 });
+      ScrollTrigger.batch("[data-reveal]", {
+        start: "top 90%",
+        once: true,
+        onEnter: (elements) =>
+          gsap.to(elements, { autoAlpha: 1, y: 0, duration: 1, ease: "power3.out", stagger: 0.08, overwrite: true }),
+      });
+
+      gsap.utils.toArray(".split-heading").forEach((heading) => {
+        gsap.from(heading.querySelectorAll(".split-word"), {
+          yPercent: 110,
+          rotate: 4,
+          duration: 1.1,
+          ease: "power4.out",
+          stagger: 0.07,
+          scrollTrigger: { trigger: heading, start: "top 88%", once: true },
+        });
+      });
+    });
+    return () => mm.revert();
+  });
+
   return (
     <>
-      <ScrollProgressBar/>
-      <Header/>
-      <PageLoader />
-      <HorizontalScroll />
-      <TextRevealOnScroll />
-      <ScrollAnimation  />
-      <TechStack />
-      <footer className="site-footer" id="contact">
-        <div className="site-footer__inner">
-          <span className="site-footer__label">Let&apos;s build something</span>
-          <div className="site-footer__links">
-            <a href="mailto:[YOUR EMAIL]">[YOUR EMAIL]</a>
-            <a href="https://www.linkedin.com/" target="_blank" rel="noreferrer noopener">LinkedIn</a>
-            <a href="https://github.com/" target="_blank" rel="noreferrer noopener">GitHub</a>
-            <a href="https://dribbble.com/" target="_blank" rel="noreferrer noopener">Dribbble</a>
-          </div>
-        </div>
-      </footer>
+      <a className="sr-only" href="#about">
+        Skip to content
+      </a>
+      <ScrollProgressBar />
+      <Cursor />
+      <Header />
+      <main>
+        <Hero />
+        <HorizontalScroll />
+        <About />
+        <Stats />
+        <Marquee items={marqueeItems} />
+        <Services />
+        <Projects />
+        <Experience />
+        <Skills />
+        <Contact />
+      </main>
     </>
   );
 };

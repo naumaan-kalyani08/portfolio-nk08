@@ -1,0 +1,124 @@
+.skills__stack {
+  max-width: 1100px;
+  margin: 0 auto;
+  perspective: 1200px;
+}
+
+.skill-card-wrap {
+  position: sticky;
+  top: calc(110px + var(--i) * 22px);
+  padding-bottom: 8vh;
+}
+
+.skill-card-wrap:last-child {
+  padding-bottom: 0;
+}
+
+.skill-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "top top"
+    "title chips"
+    "text chips";
+  gap: 18px 48px;
+  min-height: min(62vh, 460px);
+  padding: clamp(28px, 4vw, 56px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.18), transparent 45%),
+    linear-gradient(135deg, var(--card), color-mix(in srgb, var(--card) 45%, #05070f));
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.35);
+  transform-origin: 50% 0%;
+  will-change: transform;
+}
+
+.skill-card__top {
+  grid-area: top;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.skill-card__title {
+  grid-area: title;
+  align-self: end;
+  font-family: var(--font-display);
+  font-size: clamp(44px, 7vw, 96px);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+
+.skill-card__text {
+  grid-area: text;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: clamp(15px, 1.4vw, 18px);
+  line-height: 1.55;
+}
+
+.skill-card__chips {
+  grid-area: chips;
+  align-self: end;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  list-style: none;
+}
+
+.skill-card__chips li {
+  padding: 10px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  background: rgba(5, 7, 15, 0.25);
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.3s ease, color 0.3s ease, transform 0.3s var(--ease-out);
+}
+
+.skill-card__chips li:hover {
+  background: #fff;
+  color: var(--bg);
+  transform: translateY(-3px);
+}
+
+.skill-card__shade {
+  position: absolute;
+  inset: 0;
+  background: #05070f;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .skill-card-wrap {
+    top: calc(84px + var(--i) * 14px);
+    padding-bottom: 6vh;
+  }
+
+  .skill-card {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "top"
+      "title"
+      "text"
+      "chips";
+    min-height: 0;
+    gap: 16px;
+    border-radius: 22px;
+  }
+
+  .skill-card__chips {
+    justify-content: flex-start;
+    margin-top: 8px;
+  }
+}

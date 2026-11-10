@@ -63,7 +63,12 @@ body:not(.in-hero):not(.menu-open) .scroll-indicator {
   height: 96px;
   z-index: 50;
   border-bottom: 1px solid transparent;
-  transition: background 0.3s ease, border-color 0.3s ease, backdrop-filter 0.3s ease;
+  transition: background 0.3s ease, border-color 0.3s ease, backdrop-filter 0.3s ease,
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.site-header.is-hidden {
+  transform: translateY(-100%);
 }
 
 .site-header.is-scrolled {
@@ -479,51 +484,13 @@ body:not(.in-hero):not(.menu-open) .scroll-indicator {
   text-decoration: none;
 }
 
-.site-footer {
-  padding: 48px 64px 72px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: var(--bg);
-}
-
-.site-footer__inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.site-footer__label {
-  color: var(--muted);
-  font-family: var(--font-ui);
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.site-footer__links {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 18px;
-}
-
-.site-footer__links a {
-  color: var(--muted);
-  font-family: var(--font-ui);
-  font-size: 14px;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.site-footer__links a:hover,
-.site-footer__links a:focus-visible {
-  color: var(--text);
-}
-
 @media (max-width: 768px) {
+  .site-header {
+    height: 76px;
+  }
+
   .site-header__inner {
-    padding: 0 24px;
+    padding: 0 20px;
   }
 
   .header-talk {
@@ -534,7 +501,8 @@ body:not(.in-hero):not(.menu-open) .scroll-indicator {
     gap: 12px;
   }
 
-  .side-rail {
+  .side-rail,
+  .scroll-indicator {
     display: none;
   }
 
