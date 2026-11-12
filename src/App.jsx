@@ -4,9 +4,13 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 
-import { marqueeItems } from "./data/content";
+import { marqueeItems, marqueeItemsAlt, profile } from "./data/content";
 import { prefersReducedMotion, setLenis } from "./lib/scroll";
+import { isAppReady, onAppReady } from "./lib/ready";
+import { greetDevelopers, installMagnetic, installTabTitle } from "./lib/fx";
 
+import Preloader from "./components/Preloader";
+import BackToTop from "./components/BackToTop";
 import ScrollProgressBar from "./components/ScrollProgressBar";
 import Cursor from "./components/Cursor";
 import Header from "./components/Header";
@@ -39,10 +43,29 @@ const App = () => {
     gsap.ticker.add(raf);
     gsap.ticker.lagSmoothing(0);
 
+    // Scroll stays locked until the preloader curtain lifts.
+    let unsubscribe = () => {};
+    if (!isAppReady()) {
+      lenis.stop();
+      unsubscribe = onAppReady(() => lenis.start());
+    }
+
     return () => {
+      unsubscribe();
       gsap.ticker.remove(raf); // same function reference → actually removed
       lenis.destroy();
       setLenis(null);
+    };
+  }, []);
+
+  // Small global delights: magnetic buttons, tab title, console greeting.
+  useEffect(() => {
+    const removeMagnetic = installMagnetic();
+    const removeTabTitle = installTabTitle();
+    greetDevelopers(profile.name);
+    return () => {
+      removeMagnetic();
+      removeTabTitle();
     };
   }, []);
 
@@ -86,15 +109,20 @@ const App = () => {
       <a className="sr-only" href="#about">
         Skip to content
       </a>
+      <Preloader />
       <ScrollProgressBar />
       <Cursor />
       <Header />
+      <BackToTop />
       <main>
         <Hero />
         <HorizontalScroll />
         <About />
         <Stats />
-        <Marquee items={marqueeItems} />
+        <div className="tapes">
+          <Marquee items={marqueeItems} className="marquee--tape marquee--a" />
+          <Marquee items={marqueeItemsAlt} reverse baseSpeed={45} className="marquee--tape marquee--b" />
+        </div>
         <Services />
         <Projects />
         <Experience />
