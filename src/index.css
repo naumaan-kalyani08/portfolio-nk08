@@ -1,21 +1,62 @@
+/* ==========================================================================
+   Design tokens — dark is the default, light overrides below.
+   `--ink` / `--bg-rgb` are bare RGB triplets so any surface can mix its own
+   alpha: rgb(var(--ink) / 0.12).
+   ========================================================================== */
 :root {
+  color-scheme: dark;
   --bg: #05070f;
   --bg-2: #0b0e1a;
-  --surface: rgba(255, 255, 255, 0.04);
-  --border: rgba(255, 255, 255, 0.08);
+  --bg-rgb: 5 7 15;
+  --ink: 255 255 255;
   --text: #ffffff;
   --muted: #a3a3ba;
   --muted-2: #6e6e86;
-  --line: rgba(255, 255, 255, 0.35);
+  --surface: rgb(var(--ink) / 0.04);
+  --border: rgb(var(--ink) / 0.08);
+  --border-strong: rgb(var(--ink) / 0.16);
+  --line: rgb(var(--ink) / 0.35);
   --accent: #6366f1;
   --accent-2: #5fd6f6;
+  --accent-text: #5fd6f6; /* accent that stays readable as small text */
   --gradient: linear-gradient(120deg, var(--accent) 0%, var(--accent-2) 100%);
+  --panel: rgb(10 12 24 / 0.9); /* floating HUDs, pills */
+  --card-1: rgb(22 25 44 / 0.95);
+  --card-2: rgb(9 11 22 / 0.97);
+  --shadow-rgb: 0 0 0;
+  --shadow-k: 1; /* shadow strength multiplier */
+  --comet: #ffffff;
+  --preloader-bg: #07091a;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.075 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --font-display: "Archivo Black", sans-serif;
   --font-ui: "Inter", system-ui, sans-serif;
   --font-brand: "Space Grotesk", sans-serif;
   --gutter: clamp(20px, 5vw, 64px);
   --section-y: clamp(96px, 14vw, 180px);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f3ef;
+  --bg-2: #e8e6df;
+  --bg-rgb: 244 243 239;
+  --ink: 13 15 30;
+  --text: #0d0f1e;
+  --muted: #55566b;
+  --muted-2: #74758a;
+  --line: rgb(var(--ink) / 0.3);
+  --accent: #4f46e5;
+  --accent-2: #0891b2;
+  --accent-text: #0e7490;
+  --panel: rgb(255 255 255 / 0.9);
+  --card-1: rgb(255 255 255 / 0.95);
+  --card-2: rgb(250 249 246 / 0.98);
+  --shadow-rgb: 32 34 70;
+  --shadow-k: 0.28;
+  --comet: #312e81;
+  --preloader-bg: #e9e7e0;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 *,
@@ -31,13 +72,17 @@
    `clip` on body instead. */
 html {
   overflow-x: hidden;
+  background-color: var(--bg);
   -webkit-text-size-adjust: 100%;
   scroll-padding-top: 96px;
 }
 
+/* Film grain baked into the page background: painted once with the
+   scrolling content, so it costs nothing per frame (no fixed overlay layer). */
 body {
   overflow-x: clip;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: var(--grain);
   color: var(--text);
   font-family: var(--font-ui);
   -webkit-font-smoothing: antialiased;
@@ -179,16 +224,17 @@ button {
   text-decoration: none;
   overflow: hidden;
   isolation: isolate;
-  transition: color 0.35s var(--ease-out), border-color 0.35s var(--ease-out);
+  transition: color 0.35s var(--ease-out), border-color 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out);
 }
 
+/* Hover fill = the foreground colour, so it inverts correctly in both themes */
 .btn::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  background: #fff;
+  background: var(--text);
   transform: translateY(101%);
   transition: transform 0.45s var(--ease-out);
 }
@@ -196,7 +242,7 @@ button {
 .btn:hover,
 .btn:focus-visible {
   color: var(--bg);
-  border-color: #fff;
+  border-color: var(--text);
 }
 
 .btn:hover::before,
@@ -207,6 +253,8 @@ button {
 .btn--primary {
   border-color: transparent;
   background: var(--gradient);
+  color: #fff;
+  box-shadow: 0 14px 40px -14px rgb(99 102 241 / 0.65);
 }
 
 .btn__arrow {
@@ -235,6 +283,8 @@ button {
 }
 
 /* ---------- Custom cursor (fine pointers only) ---------- */
+/* `difference` blending inverts against whatever is underneath, so the white
+   cursor reads on both the dark and the light theme. */
 .cursor {
   position: fixed;
   top: 0;
@@ -312,5 +362,153 @@ button {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- Back-to-top progress ring ---------- */
+.totop {
+  position: fixed;
+  right: clamp(16px, 2.5vw, 32px);
+  bottom: clamp(16px, 2.5vw, 32px);
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--panel);
+  box-shadow: 0 12px 30px -12px rgb(var(--shadow-rgb) / calc(0.6 * var(--shadow-k)));
+  color: var(--text);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(16px) scale(0.8);
+  transition: opacity 0.4s ease, visibility 0s linear 0.4s, transform 0.5s var(--ease-out);
+}
+
+.totop.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity 0.4s ease, visibility 0s linear 0s, transform 0.5s var(--ease-out);
+}
+
+body.menu-open .totop {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.totop svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+
+.totop__track,
+.totop__progress {
+  fill: none;
+  stroke-width: 2;
+}
+
+.totop__track {
+  stroke: rgb(var(--ink) / 0.12);
+}
+
+.totop__progress {
+  stroke: var(--accent-2);
+  stroke-linecap: round;
+}
+
+.totop__arrow {
+  font-size: 18px;
+  font-weight: 700;
+  transition: transform 0.4s var(--ease-out);
+}
+
+.totop:hover .totop__arrow {
+  transform: translateY(-3px);
+}
+
+/* ---------- Theme switching ---------- */
+/* Every surface swaps in the same frame (no staggered colour fades). */
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+}
+
+/* The circular reveal itself is driven from JS (lib/theme.js). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* ---------- Theme toggle (sun ⇄ moon morph) ---------- */
+.theme-toggle {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--text);
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+}
+
+.theme-toggle__icon {
+  width: 22px;
+  height: 22px;
+  overflow: visible;
+}
+
+/* The icon keeps its morph even while other transitions are suspended. */
+.theme-toggle__icon *,
+html.theme-switching .theme-toggle__icon * {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease !important;
+}
+
+/* Dark theme → moon: a big disc with a bite taken out, rays tucked away. */
+.theme-toggle__disc {
+  transform: scale(1);
+}
+
+.theme-toggle__bite {
+  transform: translate(0, 0);
+}
+
+.theme-toggle__rays {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.3);
+}
+
+/* Light theme → sun: smaller disc, the bite slides off, rays spin in. */
+:root[data-theme="light"] .theme-toggle__disc {
+  transform: scale(0.56);
+}
+
+:root[data-theme="light"] .theme-toggle__bite {
+  transform: translate(10px, -10px);
+}
+
+:root[data-theme="light"] .theme-toggle__rays {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle__icon *,
+  html.theme-switching .theme-toggle__icon * {
+    transition: none !important;
   }
 }
