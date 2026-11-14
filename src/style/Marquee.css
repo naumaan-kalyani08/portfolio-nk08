@@ -3,7 +3,7 @@
   overflow: hidden;
   padding: clamp(20px, 3vw, 36px) 0;
   border-block: 1px solid var(--border);
-  background: linear-gradient(90deg, rgba(99, 102, 241, 0.06), rgba(95, 214, 246, 0.06));
+  background: linear-gradient(90deg, rgb(99 102 241 / 0.06), rgb(95 214 246 / 0.06));
 }
 
 .marquee__track {
@@ -31,11 +31,74 @@
 
 .marquee__item:nth-child(even) {
   color: transparent;
-  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.55);
+  -webkit-text-stroke: 1px rgb(var(--ink) / 0.55);
 }
 
 .marquee__star {
   color: var(--accent-2);
   -webkit-text-stroke: 0;
   font-size: 0.45em;
+}
+
+/* ---------- Crossing tapes ---------- */
+/* Two bands tilted in opposite directions that cross in an X: the brand
+   gradient in front, a page-tone band behind running the other way.
+   Band height = font-size (line-height 1) + 2 × padding, so the back band can
+   be pulled up by exactly one band height to share the front band's centre. */
+.tapes {
+  --tape-font: clamp(26px, 4.4vw, 64px);
+  --tape-pad: clamp(12px, 1.5vw, 20px);
+  --tape-tilt: 4deg;
+  position: relative;
+  padding: clamp(40px, 7vw, 100px) 0;
+  overflow: hidden;
+}
+
+.marquee--tape {
+  margin-inline: -8vw;
+  padding: var(--tape-pad) 0;
+}
+
+.marquee--tape .marquee__item {
+  font-size: var(--tape-font);
+}
+
+.marquee--a {
+  z-index: 2;
+  rotate: calc(-1 * var(--tape-tilt));
+  border: 0;
+  background: var(--gradient);
+  color: #fff;
+  box-shadow: 0 20px 50px -20px rgb(99 102 241 / 0.65);
+}
+
+.marquee--a .marquee__item:nth-child(even) {
+  -webkit-text-stroke-color: rgb(255 255 255 / 0.85);
+}
+
+.marquee--a .marquee__star {
+  color: rgb(255 255 255 / 0.9);
+}
+
+.marquee--b {
+  z-index: 1;
+  rotate: var(--tape-tilt);
+  margin-top: calc(-1 * (var(--tape-font) + 2 * var(--tape-pad)));
+  border-block: 1px solid var(--border-strong);
+  background: var(--bg-2);
+}
+
+.marquee--b .marquee__star {
+  color: var(--accent);
+}
+
+/* Narrow screens can't separate an X — stack the tapes instead. */
+@media (max-width: 900px) {
+  .tapes {
+    --tape-tilt: 2.5deg;
+  }
+
+  .marquee--b {
+    margin-top: 10px;
+  }
 }

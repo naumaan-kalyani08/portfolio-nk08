@@ -47,7 +47,24 @@ const getTime = () =>
 
 export default function Contact() {
   const canvasRef = useRef(null);
+  const toastRef = useRef(null);
   const [time, setTime] = useState(getTime);
+  const [toast, setToast] = useState("");
+
+  const copyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText(profile.email);
+      setToast("Email copied to clipboard ✓");
+    } catch {
+      setToast(profile.email);
+    }
+    const el = toastRef.current;
+    gsap.killTweensOf(el);
+    gsap
+      .timeline()
+      .fromTo(el, { yPercent: 120, autoAlpha: 0 }, { yPercent: 0, autoAlpha: 1, duration: 0.5, ease: "back.out(1.8)" })
+      .to(el, { yPercent: 120, autoAlpha: 0, duration: 0.4, ease: "power2.in" }, "+=1.8");
+  };
 
   useThreeScene(canvasRef, loadContactScene, { progressStart: "top bottom", progressEnd: "bottom top" });
 
@@ -70,6 +87,12 @@ export default function Contact() {
 
         <div className="contact__cta" data-reveal>
           <MagneticButton href={`mailto:${profile.email}`}>Say hello ↗</MagneticButton>
+          <button type="button" className="contact__copy" onClick={copyEmail} data-magnetic="0.2">
+            <span className="contact__copy-icon" aria-hidden="true">
+              ⧉
+            </span>
+            Copy email
+          </button>
         </div>
 
         <div className="contact__grid">
@@ -94,6 +117,10 @@ export default function Contact() {
             </span>
           </div>
         </div>
+      </div>
+
+      <div className="toast" ref={toastRef} role="status" aria-live="polite">
+        {toast}
       </div>
 
       <footer className="site-footer">

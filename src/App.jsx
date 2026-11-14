@@ -14,6 +14,7 @@ import BackToTop from "./components/BackToTop";
 import ScrollProgressBar from "./components/ScrollProgressBar";
 import Cursor from "./components/Cursor";
 import Header from "./components/Header";
+import LaptopIntro from "./components/LaptopIntro";
 import Hero from "./components/Hero";
 import HorizontalScroll from "./components/HorizontalScroll";
 import About from "./components/About";
@@ -115,7 +116,9 @@ const App = () => {
       <Header />
       <BackToTop />
       <main>
-        <Hero />
+        <LaptopIntro>
+          <Hero />
+        </LaptopIntro>
         <HorizontalScroll />
         <About />
         <Stats />

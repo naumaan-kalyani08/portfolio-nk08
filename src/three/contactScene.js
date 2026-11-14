@@ -7,6 +7,7 @@ import {
   IcosahedronGeometry,
   LineBasicMaterial,
   LineSegments,
+  NormalBlending,
   Points,
   PointsMaterial,
   TorusGeometry,
@@ -16,6 +17,11 @@ import { createBase, lerp } from "./base";
 
 // A slowly-breathing wireframe "globe" with orbiting rings and a dust field.
 // Uses built-in materials only — very cheap to render.
+
+const THEMES = {
+  dark: { globe: "#6366f1", globeOpacity: 0.28, vert: "#5fd6f6", ring: "#5fd6f6", dust: "#a3a3ba", blending: AdditiveBlending },
+  light: { globe: "#4f46e5", globeOpacity: 0.32, vert: "#0891b2", ring: "#0e7490", dust: "#74758a", blending: NormalBlending },
+};
 
 function dust(count, radius) {
   const positions = new Float32Array(count * 3);
@@ -105,6 +111,18 @@ export function createScene(container, { isMobile }) {
     },
     setProgress: (p) => {
       progress = p;
+    },
+    setTheme: (theme) => {
+      const t = THEMES[theme] ?? THEMES.dark;
+      globe.material.color.set(t.globe);
+      globe.material.opacity = t.globeOpacity;
+      vertices.material.color.set(t.vert);
+      ringMaterial.color.set(t.ring);
+      field.material.color.set(t.dust);
+      if (vertices.material.blending !== t.blending) {
+        vertices.material.blending = t.blending;
+        vertices.material.needsUpdate = true;
+      }
     },
     dispose: base.dispose,
   };

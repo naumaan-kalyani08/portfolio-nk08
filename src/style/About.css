@@ -37,7 +37,14 @@
 
 .word {
   opacity: 0.18;
-  color: #fff;
+  color: var(--text);
+}
+
+/* Highlighted words fade from text colour to the accent as --hl goes 0 → 1
+   (tweened by GSAP), so the highlight follows the active theme. */
+.word--hl {
+  --hl: 0;
+  color: color-mix(in srgb, var(--accent-text) calc(var(--hl) * 100%), var(--text));
 }
 
 .w-50 {

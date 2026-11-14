@@ -1,8 +1,37 @@
-.services__list {
+.services__wrap {
+  position: relative;
   max-width: 1200px;
   margin: 0 auto;
+}
+
+.services__list {
   list-style: none;
   border-top: 1px solid var(--border);
+}
+
+/* Floating preview that trails the cursor (desktop only) */
+.services__preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  width: clamp(220px, 22vw, 320px);
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--bg-2);
+  box-shadow: 0 40px 80px -20px rgb(var(--shadow-rgb) / calc(0.7 * var(--shadow-k))), 0 0 0 1px var(--border);
+  pointer-events: none;
+  visibility: hidden;
+  will-change: transform;
+}
+
+.services__preview-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .service {
@@ -23,7 +52,7 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(120deg, rgba(99, 102, 241, 0.16), rgba(95, 214, 246, 0.1));
+  background: linear-gradient(120deg, rgb(99 102 241 / 0.16), rgb(95 214 246 / 0.1));
   transform: scaleY(0);
   transform-origin: 50% 100%;
   transition: transform 0.55s var(--ease-out);
@@ -52,10 +81,66 @@
   transform: translateX(12px);
 }
 
+/* Description and tags share one grid cell: hovering swaps them without
+   changing the row height (no layout shift → ScrollTrigger stays accurate). */
+.service__swap {
+  display: grid;
+  overflow: hidden;
+}
+
+.service__text,
+.service__tags {
+  grid-area: 1 / 1;
+  transition: transform 0.55s var(--ease-out), opacity 0.4s ease;
+}
+
 .service__text {
   color: var(--muted);
   font-size: 15px;
   line-height: 1.6;
+}
+
+.service__tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  gap: 8px;
+  list-style: none;
+  opacity: 0;
+  transform: translateY(70%);
+}
+
+.service__tags li {
+  padding: 6px 12px;
+  border: 1px solid rgb(var(--ink) / 0.18);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .service:hover .service__text {
+    opacity: 0;
+    transform: translateY(-70%);
+  }
+
+  .service:hover .service__tags {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Touch: show tags under the description instead */
+@media (hover: none), (pointer: coarse) {
+  .service__swap {
+    gap: 14px;
+  }
+
+  .service__tags {
+    grid-area: auto;
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .service__arrow {
@@ -70,7 +155,8 @@
 }
 
 .service:hover .service__arrow {
-  background: #fff;
+  background: var(--text);
+  border-color: var(--text);
   color: var(--bg);
   transform: rotate(45deg);
 }
@@ -82,7 +168,7 @@
     padding-inline: 0;
   }
 
-  .service__text {
+  .service__swap {
     grid-column: 2;
   }
 

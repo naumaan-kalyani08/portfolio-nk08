@@ -4,24 +4,21 @@
   --oy: 48px;
 }
 
-.side-rail,
-.scroll-indicator {
+.side-rail {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   transition: opacity 0.35s var(--ease), transform 0.35s var(--ease), visibility 0s linear 0.35s;
 }
 
-body.menu-open .side-rail,
-body.menu-open .scroll-indicator {
+body.menu-open .side-rail {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
 }
 
-body.in-hero:not(.menu-open) .side-rail,
-body.in-hero:not(.menu-open) .scroll-indicator {
+body.in-hero:not(.menu-open) .side-rail {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -32,12 +29,7 @@ body.in-hero:not(.menu-open) .side-rail {
   transform: translateX(0);
 }
 
-body.in-hero:not(.menu-open) .scroll-indicator {
-  transform: translateY(0);
-}
-
-body:not(.menu-open) .side-rail,
-body:not(.menu-open) .scroll-indicator {
+body:not(.menu-open) .side-rail {
   transition-delay: 0.95s;
 }
 
@@ -46,13 +38,6 @@ body:not(.in-hero):not(.menu-open) .side-rail {
   visibility: hidden;
   pointer-events: none;
   transform: translateX(-12px);
-}
-
-body:not(.in-hero):not(.menu-open) .scroll-indicator {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transform: translateY(8px);
 }
 
 .site-header {
@@ -72,9 +57,10 @@ body:not(.in-hero):not(.menu-open) .scroll-indicator {
 }
 
 .site-header.is-scrolled {
-  background: rgba(5, 7, 15, 0.6);
-  backdrop-filter: blur(12px);
-  border-bottom-color: rgba(255, 255, 255, 0.08);
+  background: rgb(var(--bg-rgb) / 0.65);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.4);
+  border-bottom-color: var(--border);
 }
 
 .site-header__inner {
@@ -99,6 +85,41 @@ body:not(.in-hero):not(.menu-open) .scroll-indicator {
   display: inline-block;
 }
 
+/* "/ Section" label that rolls when the current section changes */
+.brand__section {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 14px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.brand__slash {
+  color: var(--muted-2);
+}
+
+.brand__section-text {
+  display: inline-block;
+  animation: brandSection 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes brandSection {
+  from {
+    transform: translateY(110%);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .brand__section {
+    display: none;
+  }
+}
+
 .brand__mark {
   font-family: var(--font-brand);
   font-size: 26px;
@@ -116,7 +137,11 @@ body:not(.in-hero):not(.menu-open) .scroll-indicator {
 .site-header__actions {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 14px;
+}
+
+.header-talk {
+  margin-right: 18px;
 }
 
 .header-talk {
@@ -153,7 +178,8 @@ body:not(.in-hero):not(.menu-open) .scroll-indicator {
 
 .menu-button:hover,
 .menu-button:focus-visible {
-  background: rgba(255, 255, 255, 1);
+  background: var(--text);
+  border-color: var(--text);
   color: var(--bg);
 }
 
@@ -222,20 +248,24 @@ body:not(.in-hero):not(.menu-open) .scroll-indicator {
   transform: rotate(-45deg);
 }
 
+/* Vertically centred on the left edge, clear of the hero's bottom dock.
+   `translate` centres it; `transform` stays free for the show/hide slide. */
 .side-rail {
   position: fixed;
-  left: 28px;
-  bottom: 36px;
+  top: 50%;
+  left: 24px;
+  translate: 0 -50%;
   display: flex;
-  align-items: flex-end;
-  gap: 20px;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
   z-index: 49;
 }
 
 .side-rail__line {
-  width: 56px;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.2);
+  width: 1px;
+  height: 48px;
+  background: rgb(var(--ink) / 0.2);
 }
 
 .side-rail__nav {
@@ -261,64 +291,11 @@ body:not(.in-hero):not(.menu-open) .scroll-indicator {
   color: var(--text);
 }
 
-.scroll-indicator {
-  position: fixed;
-  right: 64px;
-  bottom: 32px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  z-index: 49;
-  color: var(--muted);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.scroll-indicator__label {
-  font-family: var(--font-ui);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.scroll-indicator__line {
-  position: relative;
-  display: block;
-  width: 1px;
-  height: 36px;
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0),
-    rgba(255, 255, 255, 0.9),
-    rgba(255, 255, 255, 0)
-  );
-  animation: scrollPulse 1.8s ease-in-out infinite;
-}
-
-@keyframes scrollPulse {
-  0%,
-  100% {
-    opacity: 0.35;
-    transform: scaleY(0.8);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scaleY(1.06);
-  }
-}
-
-.scroll-indicator.is-hidden {
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(8px);
-}
-
 .site-menu {
   position: fixed;
   inset: 0;
   z-index: 40;
-  background: #05070f;
+  background: var(--bg);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -330,7 +307,7 @@ body:not(.in-hero):not(.menu-open) .scroll-indicator {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at bottom, rgba(99, 102, 241, 0.18), transparent 38%, transparent 100%);
+  background: radial-gradient(circle at bottom, rgb(99 102 241 / 0.18), transparent 38%, transparent 100%);
 }
 
 .site-menu.is-open {
@@ -373,7 +350,7 @@ body:not(.in-hero):not(.menu-open) .scroll-indicator {
   align-items: flex-start;
   gap: 18px;
   position: relative;
-  color: rgba(255, 255, 255, 0.92);
+  color: rgb(var(--ink) / 0.92);
   text-decoration: none;
   transform: translateY(110%);
   opacity: 0;
@@ -498,11 +475,15 @@ body:not(.in-hero):not(.menu-open) .scroll-indicator {
   }
 
   .site-header__actions {
-    gap: 12px;
+    gap: 10px;
   }
 
-  .side-rail,
-  .scroll-indicator {
+  .theme-toggle {
+    width: 44px;
+    height: 44px;
+  }
+
+  .side-rail {
     display: none;
   }
 
@@ -527,7 +508,6 @@ body:not(.in-hero):not(.menu-open) .scroll-indicator {
   .menu-button,
   .menu-button__label,
   .menu-button__bar,
-  .scroll-indicator,
   .site-menu,
   .site-menu__link,
   .site-menu__meta,
@@ -536,8 +516,7 @@ body:not(.in-hero):not(.menu-open) .scroll-indicator {
     animation: none;
   }
 
-  .side-rail,
-  .scroll-indicator {
+  .side-rail {
     transform: none !important;
     transition: opacity 0.2s ease, visibility 0s linear 0.2s;
   }

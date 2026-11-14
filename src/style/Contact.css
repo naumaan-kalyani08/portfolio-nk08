@@ -7,7 +7,7 @@
   padding: var(--section-y) var(--gutter) 0;
   overflow: hidden;
   isolation: isolate;
-  background: radial-gradient(ellipse at 50% 100%, rgba(99, 102, 241, 0.18), transparent 60%);
+  background: radial-gradient(ellipse at 50% 100%, rgb(99 102 241 / 0.18), transparent 60%);
 }
 
 .contact__canvas {
@@ -38,7 +38,56 @@
 }
 
 .contact__cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(20px, 3vw, 40px);
   margin-top: clamp(40px, 6vw, 72px);
+}
+
+.contact__copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 22px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.contact__copy:hover,
+.contact__copy:focus-visible {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+}
+
+.contact__copy-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  z-index: 9500;
+  padding: 14px 22px;
+  margin-left: -140px;
+  width: 280px;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 20px 50px -10px rgb(var(--shadow-rgb) / calc(0.6 * var(--shadow-k)));
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .magnetic {
@@ -48,7 +97,7 @@
   aspect-ratio: 1;
   border-radius: 50%;
   background: var(--gradient);
-  color: #fff;
+  color: #fff; /* on the gradient in both themes */
   font-weight: 700;
   font-size: 16px;
   text-decoration: none;

@@ -1,145 +1,745 @@
-.experience {
-  background: radial-gradient(ellipse at 50% 0%, rgba(99, 102, 241, 0.1), transparent 60%);
-}
+/* ==========================================================================
+   Journey — scroll-driven comet timeline
+   Stacking inside .journey__stage:
+     light 0 → big years 0 → svg 1 → sparks 1 → cards 2 → HUD 3
+   `--c`  : milestone colour (set per item/node from the road gradient)
+   `--jc` : live comet colour (set on svg + light while scrolling)
+   ========================================================================== */
 
-.timeline {
-  --track-x: 50%;
+.journey {
+  --c: 95 214 246;
   position: relative;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 24px 0;
-  list-style: none;
+  padding: var(--section-y) var(--gutter);
+  overflow-x: clip;
 }
 
-.timeline__track {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: var(--track-x);
-  width: 2px;
-  margin-left: -1px;
-  background: var(--border);
-}
-
-.timeline__progress {
+.journey__bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, var(--accent), var(--accent-2));
-  transform: scaleY(0);
-  transform-origin: 50% 0;
-  will-change: transform;
+  z-index: -1;
+  background-image: radial-gradient(rgb(var(--ink) / 0.07) 1px, transparent 1px);
+  background-size: 34px 34px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 30%, transparent 75%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 30%, transparent 75%);
+  pointer-events: none;
 }
 
-.timeline__dot {
-  position: absolute;
-  top: -9px;
-  left: 50%;
-  width: 18px;
-  height: 18px;
-  margin-left: -9px;
-  border-radius: 50%;
-  background: var(--accent-2);
-  box-shadow: 0 0 0 6px rgba(95, 214, 246, 0.18), 0 0 24px 4px rgba(95, 214, 246, 0.6);
-  will-change: transform;
+.journey__head {
+  text-align: center;
+  align-items: center;
 }
 
-.timeline__item {
-  position: relative;
-  display: flex;
-  padding: clamp(28px, 4vw, 48px) 0;
-}
-
-.timeline__item.is-left {
-  justify-content: flex-start;
-}
-
-.timeline__item.is-right {
-  justify-content: flex-end;
-}
-
-.timeline__node {
-  position: absolute;
-  top: 50%;
-  left: var(--track-x);
-  width: 14px;
-  height: 14px;
-  margin: -7px 0 0 -7px;
-  border: 2px solid var(--muted-2);
-  border-radius: 50%;
-  background: var(--bg);
-  transition: border-color 0.4s ease, background 0.4s ease, transform 0.5s var(--ease-out);
-}
-
-.timeline__item.is-active .timeline__node {
-  border-color: var(--accent-2);
-  background: var(--accent-2);
-  transform: scale(1.3);
-}
-
-.timeline__card {
-  width: calc(50% - 56px);
-  padding: 28px 30px;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  background: var(--surface);
-  backdrop-filter: blur(6px);
-  transition: border-color 0.4s ease, transform 0.5s var(--ease-out);
-}
-
-.timeline__item.is-active .timeline__card {
-  border-color: rgba(95, 214, 246, 0.3);
-}
-
-.timeline__card:hover {
-  transform: translateY(-4px);
-}
-
-.timeline__year {
-  font-family: var(--font-display);
-  font-size: clamp(32px, 4vw, 48px);
-  line-height: 1;
-}
-
-.timeline__title {
-  margin-top: 14px;
-  font-family: var(--font-brand);
-  font-size: clamp(20px, 2vw, 24px);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.timeline__place {
-  margin-top: 4px;
-  color: var(--accent-2);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.timeline__text {
-  margin-top: 12px;
+.journey__intro {
+  max-width: 520px;
   color: var(--muted);
-  font-size: 15px;
+  font-size: clamp(15px, 1.4vw, 18px);
   line-height: 1.6;
 }
 
-@media (max-width: 900px) {
-  .timeline {
-    --track-x: 12px;
-  }
+.journey__range {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 6px;
+  color: var(--muted);
+  font-family: var(--font-brand);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
 
-  .timeline__item.is-left,
-  .timeline__item.is-right {
-    justify-content: flex-end;
-  }
+.journey__range-line {
+  width: clamp(80px, 12vw, 160px);
+  height: 1px;
+  background: linear-gradient(90deg, #6366f1, #5fd6f6, #7c3aed, #ec4899);
+}
 
-  .timeline__card {
-    width: calc(100% - 44px);
-    padding: 22px;
+.journey__stage {
+  position: relative;
+  isolation: isolate;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Light travelling with the comet, tinted with the live road colour */
+.journey__light {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: 680px;
+  height: 680px;
+  margin: -340px 0 0 -340px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgb(var(--jc, 95 214 246) / 0.17) 0%,
+    rgb(var(--jc, 95 214 246) / 0.06) 36%,
+    transparent 68%
+  );
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* Embers canvas — fixed to the viewport, only displayed near the section */
+.journey__sparks {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: none;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}
+
+.journey__sparks.is-live {
+  display: block;
+}
+
+/* ---------- SVG road ---------- */
+.journey__svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.jpath--ghost {
+  fill: none;
+  stroke: rgb(var(--ink) / 0.14);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 10;
+  stroke-linecap: round;
+}
+
+.jseg {
+  fill: none;
+  stroke: url(#journey-gradient);
+  stroke-linecap: round;
+  visibility: hidden;
+}
+
+/* Butt caps on the translucent glow so adjacent pieces don't double up at joins */
+.jseg--glow {
+  stroke-width: 24;
+  stroke-linecap: butt;
+  opacity: 0.15;
+}
+
+.jseg--main {
+  stroke-width: 4;
+}
+
+/* Tapered comet tail: long/thin/faint → short/thick/bright */
+.jtail {
+  fill: none;
+  stroke: var(--comet);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.jtail--1 {
+  stroke-width: 2;
+  opacity: 0.3;
+}
+
+.jtail--2 {
+  stroke-width: 3.5;
+  opacity: 0.6;
+}
+
+.jtail--3 {
+  stroke-width: 5.5;
+  opacity: 0.95;
+}
+
+/* Milestone nodes */
+.jnode__link {
+  fill: none;
+  stroke: rgb(var(--c) / 0.75);
+  stroke-width: 1.5;
+  stroke-dasharray: 1 1;
+  stroke-linecap: round;
+}
+
+.jnode__linkdot {
+  fill: rgb(var(--c));
+}
+
+.jnode__ring {
+  fill: var(--bg);
+  stroke: rgb(var(--ink) / 0.22);
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: stroke 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.jnode.is-active .jnode__ring {
+  stroke: rgb(var(--c) / 0.7);
+}
+
+.jnode.is-hover .jnode__ring {
+  stroke: rgb(var(--c));
+  transform: scale(1.4);
+}
+
+.jnode__ball {
+  fill: rgb(var(--c));
+}
+
+.jnode__core {
+  fill: var(--bg);
+}
+
+.jnode__ripple {
+  fill: none;
+  stroke: rgb(var(--c));
+  stroke-width: 1.5;
+  opacity: 0;
+}
+
+/* Comet head — HTML layers: translate, stretch and pulse are all compositor-only */
+.journey__head {
+  --jc: 99 102 241;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.jhead__halo,
+.jhead__pulse,
+.jhead__dot {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.jhead__halo {
+  top: -48px;
+  left: -48px;
+  width: 96px;
+  height: 96px;
+  background: radial-gradient(circle, rgb(var(--jc) / 0.7) 0%, rgb(var(--jc) / 0.2) 40%, transparent 70%);
+}
+
+.jhead__pulse {
+  top: -15px;
+  left: -15px;
+  width: 30px;
+  height: 30px;
+  border: 1.5px solid rgb(var(--jc));
+  animation: journeyPulse 1.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.jhead__body {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+}
+
+.jhead__dot {
+  top: -7px;
+  left: -7px;
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  box-shadow: 0 0 14px 3px rgb(var(--jc) / 0.9);
+}
+
+@keyframes journeyPulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.3);
+    opacity: 0;
   }
 }
 
-.timeline__list {
+/* ---------- Rows ---------- */
+.journey__list {
   list-style: none;
+}
+
+.journey__item {
+  position: relative;
+  display: flex;
+  padding: clamp(72px, 13vh, 150px) 0;
+  padding: clamp(72px, 13svh, 150px) 0;
+}
+
+.journey__item.is-even {
+  justify-content: flex-start;
+  padding-left: calc(24% + 56px);
+}
+
+.journey__item.is-odd {
+  justify-content: flex-end;
+  padding-right: calc(24% + 56px);
+}
+
+/* Extra room so the first S-curve clears the first card */
+.journey__item:first-child {
+  padding-top: clamp(170px, 28svh, 300px);
+}
+
+/* Giant outlined year — fills up like liquid when its milestone activates */
+.journey__bigyear {
+  position: absolute;
+  top: 50%;
+  z-index: 0;
+  margin-top: -0.5em;
+  font-family: var(--font-display);
+  font-size: clamp(96px, 15vw, 240px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(var(--ink) / 0.07);
+  background: linear-gradient(to top, rgb(var(--c) / 0.12) 50%, transparent 50%);
+  background-size: 100% 200%;
+  background-position: 0 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  pointer-events: none;
+  user-select: none;
+  transition: background-position 1.6s cubic-bezier(0.22, 1, 0.36, 1) 0.2s, -webkit-text-stroke-color 0.8s ease;
+  will-change: transform;
+}
+
+.journey__item.is-even .journey__bigyear {
+  right: 0;
+}
+
+.journey__item.is-odd .journey__bigyear {
+  left: 0;
+}
+
+.journey__item.is-active .journey__bigyear {
+  background-position: 0 100%;
+  -webkit-text-stroke-color: rgb(var(--c) / 0.3);
+}
+
+/* ---------- Cards ---------- */
+.jcard {
+  --mx: 50%;
+  --my: 0%;
+  position: relative;
+  z-index: 2;
+  width: min(480px, 100%);
+  padding: clamp(24px, 2.6vw, 36px);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgb(var(--c) / 0.07), transparent 60%),
+    linear-gradient(160deg, var(--card-1), var(--card-2));
+  box-shadow: 0 40px 80px -30px rgb(var(--shadow-rgb) / calc(0.75 * var(--shadow-k)));
+  transition: border-color 0.6s ease, box-shadow 0.6s ease;
+}
+
+.journey__item.is-active .jcard {
+  border-color: rgb(var(--c) / 0.28);
+  box-shadow: 0 40px 80px -30px rgb(var(--shadow-rgb) / calc(0.75 * var(--shadow-k))), 0 0 60px -30px rgb(var(--c) / 0.5);
+}
+
+/* Cursor spotlight */
+.jcard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(420px circle at var(--mx) var(--my), rgb(var(--c) / 0.14), transparent 45%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.jcard:hover::before {
+  opacity: 1;
+}
+
+/* Hairline along the top edge */
+.jcard::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(var(--c)), transparent);
+  opacity: 0;
+  transition: opacity 0.8s ease 0.4s;
+}
+
+.journey__item.is-active .jcard::after {
+  opacity: 1;
+}
+
+/* One-off light sweep when the comet arrives */
+.jcard__shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgb(var(--c) / 0.16) 45%,
+    rgb(255 255 255 / 0.14) 50%,
+    rgb(var(--c) / 0.16) 55%,
+    transparent 70%
+  );
+  pointer-events: none;
+  will-change: transform;
+}
+
+.jcard__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.jcard__index {
+  font-family: var(--font-brand);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.jcard__index span {
+  color: var(--muted-2);
+}
+
+:root[data-theme="light"] .jcard__place,
+:root[data-theme="light"] .hud__index {
+  filter: brightness(0.8) saturate(1.2);
+}
+
+.jcard__place {
+  padding: 6px 12px;
+  border: 1px solid rgb(var(--c) / 0.3);
+  border-radius: 999px;
+  background: rgb(var(--c) / 0.08);
+  color: rgb(var(--c));
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.jcard__year {
+  margin-top: 22px;
+  font-family: var(--font-display);
+  font-size: clamp(56px, 6vw, 92px);
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+}
+
+.jcard__digits {
+  background: linear-gradient(115deg, var(--text) 0%, rgb(var(--c)) 55%, rgb(var(--c) / 0.55) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.jcard__title {
+  margin-top: 14px;
+  font-family: var(--font-brand);
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.jmask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+
+.jword {
+  display: inline-block;
+}
+
+.jcard__text {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+/* ---------- Sticky HUD ---------- */
+.journey__hud-track {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.journey__hud {
+  position: sticky;
+  top: calc(100vh - 236px);
+  top: calc(100svh - 236px);
+  display: grid;
+  gap: 10px;
+  width: 220px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  /* solid panel — a backdrop blur would re-render every scroll frame */
+  background: var(--panel);
+  box-shadow: 0 20px 40px -20px rgb(var(--shadow-rgb) / calc(0.8 * var(--shadow-k)));
+}
+
+.hud__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hud__label {
+  color: var(--muted-2);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.hud__count {
+  color: var(--muted);
+  font-family: var(--font-brand);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.hud__index {
+  color: rgb(var(--c));
+  transition: color 0.6s ease;
+}
+
+.odo {
+  display: flex;
+  font-family: var(--font-display);
+  font-size: 46px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.odo__col {
+  display: block;
+  height: 1em;
+  overflow: hidden;
+}
+
+.odo__strip {
+  display: flex;
+  flex-direction: column;
+  transform: translateY(calc(var(--d, 0) * -1em));
+  transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--c-i, 0) * 70ms);
+}
+
+.odo__strip span {
+  display: block;
+  height: 1em;
+}
+
+.hud__title-wrap {
+  height: 1.4em;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.hud__title {
+  display: block;
+  overflow: hidden;
+  color: var(--text);
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hud__bar {
+  display: block;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgb(var(--ink) / 0.1);
+}
+
+.hud__fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, rgb(var(--c)));
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+/* ---------- Ending ---------- */
+.journey__next {
+  position: relative;
+  z-index: 2;
+  margin-top: clamp(90px, 16svh, 180px);
+  padding-top: clamp(56px, 8vw, 96px);
+  text-align: center;
+}
+
+.journey__next-dot {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  width: 28px;
+  height: 28px;
+  margin-left: -14px;
+  border: 1.5px solid rgb(var(--ink) / 0.22);
+  border-radius: 50%;
+  background: var(--bg);
+  transition: border-color 0.5s ease, box-shadow 0.6s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.journey__next-dot::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed, #ec4899);
+  transform: scale(0);
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.journey__next.is-active .journey__next-dot {
+  border-color: #ec4899;
+  box-shadow: 0 0 0 8px rgb(236 72 153 / 0.12), 0 0 48px rgb(236 72 153 / 0.55);
+  transform: scale(1.15);
+}
+
+.journey__next.is-active .journey__next-dot::after {
+  transform: scale(1);
+}
+
+.journey__next-label {
+  color: var(--muted-2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.journey__next-link {
+  display: inline-flex;
+  gap: 0.3em;
+  margin-top: 12px;
+  font-family: var(--font-display);
+  font-size: clamp(32px, 5vw, 64px);
+  letter-spacing: -0.04em;
+  color: rgb(var(--ink) / 0.3);
+  text-decoration: none;
+  transition: color 0.6s ease;
+}
+
+.journey__next-link span {
+  display: inline-block;
+  transition: transform 0.5s var(--ease-out);
+}
+
+.journey__next.is-active .journey__next-link,
+.journey__next-link:hover {
+  color: var(--text);
+}
+
+.journey__next-link:hover span {
+  transform: translateX(10px);
+}
+
+/* ---------- Tablet / mobile: road becomes a wave down the left gutter ---------- */
+@media (max-width: 899px) {
+  .journey__head {
+    text-align: left;
+    align-items: flex-start;
+  }
+
+  .journey__item,
+  .journey__item.is-even,
+  .journey__item.is-odd,
+  .journey__item:first-child {
+    justify-content: flex-start;
+    padding: clamp(28px, 5svh, 48px) 0 clamp(28px, 5svh, 48px) 76px;
+  }
+
+  .journey__bigyear,
+  .journey__item.is-even .journey__bigyear,
+  .journey__item.is-odd .journey__bigyear {
+    top: 6px;
+    right: -4px;
+    left: auto;
+    margin-top: 0;
+    font-size: clamp(72px, 22vw, 120px);
+  }
+
+  .jcard {
+    width: 100%;
+  }
+
+  .jseg--glow {
+    stroke-width: 14;
+  }
+
+  .jseg--main {
+    stroke-width: 3;
+  }
+
+  .jtail--2 {
+    stroke-width: 3;
+  }
+
+  .jtail--3 {
+    stroke-width: 4.5;
+  }
+
+  .journey__hud-track {
+    display: none;
+  }
+
+  .journey__light {
+    width: 380px;
+    height: 380px;
+    margin: -190px 0 0 -190px;
+  }
+
+  .journey__next {
+    margin-top: 0;
+    padding-left: 76px;
+    text-align: left;
+  }
+
+  .journey__next-dot {
+    left: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jhead__pulse {
+    animation: none;
+  }
+
+  .jseg {
+    visibility: visible;
+  }
 }

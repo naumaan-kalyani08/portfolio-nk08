@@ -1,52 +1,344 @@
+/* ==========================================================================
+   Hero — "Windows in the room"
+   Frosted glass windows float at different depths around the main window
+   (Memoji + name). The room tilts with the pointer.
+   Layers: backdrop -2 (aurora + grid) → room. (The macOS dock lives only on
+   the laptop intro's desktop, see LaptopIntro.)
+   ========================================================================== */
+
 .hero {
+  --hero-blob-a: rgb(99 102 241 / 0.5);
+  --hero-blob-b: rgb(95 214 246 / 0.3);
+  --hero-blob-c: rgb(236 72 153 / 0.3);
+  --hero-grid: rgb(var(--ink) / 0.045);
+  --glass: rgb(255 255 255 / 0.07);
+  --glass-strong: rgb(255 255 255 / 0.1);
+  --glass-solid: rgb(22 25 44 / 0.86); /* stand-in while blur is off */
+  --glass-edge: rgb(255 255 255 / 0.16);
+  --glass-shine: rgb(255 255 255 / 0.14);
+  --bubble-bg: #fff;
+  --bubble-fg: #0d0f1e;
   position: relative;
   min-height: 100vh;
   min-height: 100svh;
   display: flex;
-  align-items: center;
-  padding: 120px var(--gutter) 96px;
+  flex-direction: column;
+  padding: 104px var(--gutter) clamp(28px, 5vh, 56px);
   overflow: hidden;
   isolation: isolate;
 }
 
-.hero__canvas {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  opacity: 0;
-  visibility: hidden;
+:root[data-theme="light"] .hero {
+  --hero-blob-a: rgb(99 102 241 / 0.32);
+  --hero-blob-b: rgb(34 211 238 / 0.32);
+  --hero-blob-c: rgb(236 72 153 / 0.22);
+  --hero-grid: rgb(var(--ink) / 0.06);
+  --glass: rgb(255 255 255 / 0.42);
+  --glass-strong: rgb(255 255 255 / 0.55);
+  --glass-solid: rgb(255 255 255 / 0.9);
+  --glass-edge: rgb(255 255 255 / 0.8);
+  --glass-shine: rgb(255 255 255 / 0.6);
+  --bubble-bg: #0d0f1e;
+  --bubble-fg: #fff;
 }
 
-.hero__glow {
+.hero::after {
+  content: "";
   position: absolute;
-  inset: auto -20% -40% -20%;
-  height: 70%;
-  z-index: -2;
-  background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.22), transparent 65%);
+  inset: auto 0 0 0;
+  z-index: -1;
+  height: 18vh;
+  background: linear-gradient(to bottom, rgb(var(--bg-rgb) / 0), var(--bg));
   pointer-events: none;
 }
 
-.hero__content {
+/* ---------- Backdrop: the colour the glass refracts ---------- */
+.hero__backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hero__blob {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+  animation: heroDrift 20s ease-in-out infinite alternate;
+}
+
+.hero__blob--a {
+  left: -10vw;
+  top: 18%;
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(circle, var(--hero-blob-a), transparent 62%);
+}
+
+.hero__blob--b {
+  top: -24vw;
+  right: -10vw;
+  width: 56vw;
+  height: 56vw;
+  background: radial-gradient(circle, var(--hero-blob-b), transparent 62%);
+  animation-duration: 24s;
+  animation-delay: -8s;
+}
+
+.hero__blob--c {
+  right: 8vw;
+  bottom: -20vw;
+  width: 44vw;
+  height: 44vw;
+  background: radial-gradient(circle, var(--hero-blob-c), transparent 62%);
+  animation-duration: 28s;
+  animation-delay: -14s;
+}
+
+@keyframes heroDrift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(4vw, -3vw, 0) scale(1.08);
+  }
+  100% {
+    transform: translate3d(-3vw, 2vw, 0) scale(0.96);
+  }
+}
+
+.hero__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--hero-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--hero-grid) 1px, transparent 1px);
+  background-size: 76px 76px;
+  background-position: -1px -1px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 15%, transparent 72%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 15%, transparent 72%);
+}
+
+/* ---------- The room (perspective) + world (tilted by Hero.jsx) ---------- */
+.hero__room {
   position: relative;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  flex: 1;
+  display: flex;
+  min-height: 520px;
+  perspective: 1300px;
   will-change: transform, opacity;
 }
 
-.hero__eyebrow {
+.hero__world {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* ---------- Glass windows ---------- */
+.hero__pane {
+  position: relative;
+  border: 1px solid var(--glass-edge);
+  border-radius: 26px;
+  background: linear-gradient(160deg, var(--glass-shine), transparent 40%), var(--glass);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  backdrop-filter: blur(20px) saturate(1.5);
+  box-shadow:
+    0 40px 80px -30px rgb(var(--shadow-rgb) / calc(0.8 * var(--shadow-k))),
+    inset 0 1px 0 rgb(255 255 255 / 0.12);
+  color: var(--text);
+  will-change: transform, opacity;
+  transition:
+    background-color 0.6s var(--ease-out),
+    border-color 0.35s var(--ease-out);
+}
+
+.hero__pane--main {
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: min(600px, 100%);
+  padding: clamp(96px, 12vw, 128px) clamp(22px, 4vw, 44px) clamp(26px, 3.4vw, 38px);
+  margin-top: clamp(60px, 9vw, 96px);
+  text-align: center;
+  background: linear-gradient(160deg, var(--glass-shine), transparent 40%), var(--glass-strong);
+}
+
+.hero__pane--side {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  gap: 6px;
+  width: clamp(180px, 17vw, 230px);
+  padding: 16px 18px 18px;
+  text-decoration: none;
+}
+
+.hero__pane--side small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.hero__pane--side b {
+  font-family: var(--font-brand);
+  font-size: clamp(16px, 1.35vw, 19px);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.hero__pane--side:hover,
+.hero__pane--side:focus-visible {
+  border-color: var(--accent-2);
+  outline: none;
+}
+
+.hero__pane--work {
+  left: 4%;
+  top: 8%;
+}
+.hero__pane--stack {
+  right: 4%;
+  top: 4%;
+}
+.hero__pane--about {
+  left: 7%;
+  bottom: 4%;
+}
+.hero__pane--contact {
+  right: 6%;
+  bottom: 8%;
+}
+
+/* ---------- Memoji ---------- */
+.hero__avatar {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: clamp(150px, 17vw, 210px);
+  aspect-ratio: 1;
+  margin-left: calc(clamp(150px, 17vw, 210px) / -2);
+  margin-top: calc(clamp(150px, 17vw, 210px) * -0.52);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.hero__avatar:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 4px;
+  border-radius: 50%;
+}
+
+.hero__avatar-body {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 85%;
+  animation: heroFloat 5.5s ease-in-out infinite;
+}
+
+.hero__memoji {
+  position: absolute;
+  inset: 0;
+}
+
+/* Poses with a torso end in a hard cut: melt it into the glass. */
+.hero__memoji:is([data-pose="wave"], [data-pose="hi"], [data-pose="call"], [data-pose="laptop"]) {
+  -webkit-mask-image: linear-gradient(to bottom, #000 66%, transparent 90%);
+  mask-image: linear-gradient(to bottom, #000 66%, transparent 90%);
+}
+
+/* …and skip the drop shadow there: cut by the fade it reads as a box. */
+.hero__memoji:is([data-pose="wave"], [data-pose="hi"], [data-pose="call"], [data-pose="laptop"]) .hero__memoji-img {
+  filter: none;
+}
+
+.hero__memoji-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 24px rgb(0 0 0 / 0.28));
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* wave.png split in two: the hand + wrist (x 64–92%, y 0–51% of the image,
+   over transparency) swings from the wrist; the base has that notch removed.
+   The 4% band at the cuff is in both, so the seam never opens. */
+.hero__memoji-base {
+  clip-path: polygon(0 0, 64% 0, 64% 47%, 92% 47%, 92% 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.hero__memoji-hand {
+  clip-path: polygon(64% 0, 92% 0, 92% 51%, 64% 51%);
+  transform-origin: 74.5% 49%;
+  will-change: transform;
+}
+
+.hero__avatar-shadow {
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: -6%;
+  height: 10%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(0 0 0 / 0.3), transparent);
+  animation: heroShadow 5.5s ease-in-out infinite;
+}
+
+@keyframes heroFloat {
+  50% {
+    translate: 0 -8px;
+  }
+}
+
+@keyframes heroShadow {
+  50% {
+    transform: scaleX(0.82);
+    opacity: 0.6;
+  }
+}
+
+.hero__bubble {
+  position: absolute;
+  top: clamp(-70px, -6vw, -50px);
+  left: calc(50% + clamp(70px, 8vw, 100px));
+  padding: 10px 16px;
+  border-radius: 18px 18px 18px 4px;
+  background: var(--bubble-bg);
+  color: var(--bubble-fg);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  transform-origin: 0 100%;
+  box-shadow: 0 14px 30px -12px rgb(0 0 0 / 0.45);
+}
+
+/* ---------- Main window copy ---------- */
+.hero__hello {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 28px;
-  padding: 8px 16px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: rgba(5, 7, 15, 0.5);
-  backdrop-filter: blur(8px);
+  gap: 10px;
+  margin: 0;
   color: var(--muted);
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
 .hero__status {
@@ -74,75 +366,132 @@
   }
 }
 
-.hero__title {
-  display: flex;
-  flex-direction: column;
+.hero__name {
+  margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(52px, 12vw, 176px);
+  font-size: clamp(36px, 5.4vw, 72px);
   font-weight: 400;
-  line-height: 0.92;
-  letter-spacing: -0.05em;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
-.hero__line {
-  display: block;
+.hero__name > span {
+  display: inline-block;
   overflow: hidden;
   padding-bottom: 0.06em;
+  vertical-align: top;
+}
+
+.hero__word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.hero__word + .hero__word {
+  margin-left: 0.24em;
 }
 
 .hero__char {
   display: inline-block;
-  will-change: transform;
 }
 
-.hero__char--outline {
-  color: transparent;
-  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.85);
-}
-
-.hero__tagline {
-  max-width: 520px;
-  margin-top: 32px;
+.hero__role {
+  margin: 0;
+  max-width: 34ch;
   color: var(--muted);
-  font-size: clamp(16px, 1.5vw, 19px);
-  line-height: 1.6;
+  font-size: clamp(15px, 1.4vw, 18px);
+  line-height: 1.5;
+}
+
+.hero__rotator {
+  color: var(--accent-text);
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .hero__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 40px;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
 }
 
-.hero__boxes {
-  position: absolute;
-  inset: 0;
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-  pointer-events: none;
+/* ---------- Responsive ---------- */
+@media (max-width: 1100px) {
+  .hero__pane--side {
+    width: 180px;
+  }
+  .hero__pane--work {
+    top: 2%;
+  }
+  .hero__pane--stack,
+  .hero__pane--about {
+    display: none;
+  }
 }
 
-.hero__box {
-  flex: 1;
-  margin-bottom: -1px; /* hide sub-pixel seams */
-  background: #11131c;
-  transform-origin: 100% 50%;
-  will-change: transform;
-}
-
-@media (max-width: 768px) {
+/* Narrow: no floating — the side windows become a 2-up row under the main one. */
+@media (max-width: 860px) {
   .hero {
-    align-items: flex-end;
-    padding-bottom: 72px;
+    padding-top: 96px;
   }
-
-  .hero__char--outline {
-    -webkit-text-stroke-width: 1px;
+  .hero__room {
+    min-height: 0;
   }
+  .hero__world {
+    grid-template-columns: 1fr 1fr;
+    align-content: center;
+    gap: 12px;
+  }
+  .hero__pane--main {
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+  .hero__pane--side,
+  .hero__pane--stack,
+  .hero__pane--about {
+    position: relative;
+    inset: auto;
+    display: grid;
+    width: auto;
+    align-self: stretch;
+    padding: 14px 16px;
+    border-radius: 20px;
+  }
+  .hero__pane--stack,
+  .hero__pane--about {
+    display: none;
+  }
+  /* Blur is costly on phones: frosted look without the live backdrop. */
+  .hero__pane {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: linear-gradient(160deg, var(--glass-shine), transparent 40%), var(--glass-solid);
+  }
+  .hero__bubble {
+    left: calc(50% + 62px);
+    font-size: 13px;
+  }
+}
 
+@media (max-width: 480px) {
   .hero__actions .btn {
-    flex: 1 1 auto;
+    flex: 1 1 100%;
+    height: 50px;
+  }
+  .hero__bubble {
+    left: auto;
+    right: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__blob,
+  .hero__avatar-body,
+  .hero__avatar-shadow,
+  .hero__status::after {
+    animation: none;
   }
 }

@@ -5,7 +5,7 @@ import "../style/Marquee.css";
 
 // Infinite marquee whose speed, direction and skew react to scroll velocity.
 // Runs on the shared GSAP ticker and only while on-screen.
-export default function Marquee({ items, baseSpeed = 60, reverse = false }) {
+export default function Marquee({ items, baseSpeed = 60, reverse = false, className = "" }) {
   const rootRef = useRef(null);
   const trackRef = useRef(null);
 
@@ -68,7 +68,7 @@ export default function Marquee({ items, baseSpeed = 60, reverse = false }) {
   ));
 
   return (
-    <div className="marquee" ref={rootRef} aria-label={items.join(", ")}>
+    <div className={`marquee ${className}`} ref={rootRef} aria-label={items.join(", ")}>
       <div className="marquee__track" ref={trackRef} aria-hidden="true">
         <div className="marquee__row">{row}</div>
         <div className="marquee__row">{row}</div>

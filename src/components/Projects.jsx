@@ -1,17 +1,24 @@
-import { useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import gsap from "gsap";
+import { Flip } from "gsap/Flip";
 import { useGSAP } from "@gsap/react";
 import { projects } from "../data/content";
 import { isFinePointer, prefersReducedMotion } from "../lib/scroll";
+import ProjectCase from "./ProjectCase";
 import RevealHeading from "./RevealHeading";
 import "../style/Projects.css";
 
+gsap.registerPlugin(Flip);
+
 export default function Projects() {
   const sectionRef = useRef(null);
+  const [openIndex, setOpenIndex] = useState(null);
+  const openState = useRef(null); // Flip state of the clicked card's image
+  const closing = useRef(null); // { state, slug } while flying back to the grid
 
   useGSAP(
     () => {
-      if (prefersReducedMotion()) return;
+      if (prefersReducedMotion()) return undefined;
 
       gsap.utils.toArray(".project").forEach((card) => {
         const media = card.querySelector(".project__media");
@@ -42,7 +49,7 @@ export default function Projects() {
       });
 
       // 3D tilt on hover — desktop / fine pointers only.
-      if (!isFinePointer()) return;
+      if (!isFinePointer()) return undefined;
       const cleanups = gsap.utils.toArray(".project__link").map((link) => {
         const rotX = gsap.quickTo(link, "rotationX", { duration: 0.6, ease: "power3" });
         const rotY = gsap.quickTo(link, "rotationY", { duration: 0.6, ease: "power3" });
@@ -73,6 +80,37 @@ export default function Projects() {
     { scope: sectionRef }
   );
 
+  // Fly the image back from the case study into its card.
+  useLayoutEffect(() => {
+    if (openIndex !== null || !closing.current) return;
+    const { state, slug } = closing.current;
+    closing.current = null;
+    const target = sectionRef.current.querySelector(`.project__media[data-flip-id="${slug}"]`);
+    if (!target) return;
+    Flip.from(state, {
+      targets: target,
+      duration: 0.9,
+      ease: "expo.inOut",
+      absolute: true,
+      zIndex: 60,
+      onComplete: () => target.closest(".project__link")?.focus({ preventScroll: true }),
+    });
+  }, [openIndex]);
+
+  const openCase = (event, index) => {
+    event.preventDefault();
+    const link = event.currentTarget;
+    gsap.killTweensOf(link);
+    gsap.set(link, { rotationX: 0, rotationY: 0 });
+    if (!prefersReducedMotion()) openState.current = Flip.getState(link.querySelector(".project__media"));
+    setOpenIndex(index);
+  };
+
+  const closeCase = (state) => {
+    if (state) closing.current = { state, slug: projects[openIndex].slug };
+    setOpenIndex(null);
+  };
+
   return (
     <section id="work" className="section projects" ref={sectionRef}>
       <header className="section-head">
@@ -86,9 +124,15 @@ export default function Projects() {
 
       <div className="projects__grid">
         {projects.map((project, index) => (
-          <article className="project" key={project.title}>
-            <a className="project__link" href={project.href} data-cursor="View">
-              <div className="project__media">
+          <article className={`project ${openIndex === index ? "is-open" : ""}`} key={project.slug}>
+            <a
+              className="project__link"
+              href={`#${project.slug}`}
+              data-cursor="Open"
+              aria-haspopup="dialog"
+              onClick={(event) => openCase(event, index)}
+            >
+              <div className="project__media" data-flip-id={project.slug}>
                 <img
                   className="project__img"
                   src={project.image}
@@ -99,6 +143,9 @@ export default function Projects() {
                   decoding="async"
                 />
                 <span className="project__num">{String(index + 1).padStart(2, "0")}</span>
+                <span className="project__open" aria-hidden="true">
+                  Case study ↗
+                </span>
               </div>
               <div className="project__info">
                 <div>
@@ -116,6 +163,15 @@ export default function Projects() {
           </article>
         ))}
       </div>
+
+      {openIndex !== null && (
+        <ProjectCase
+          index={openIndex}
+          flipState={openState}
+          onClose={closeCase}
+          onNext={() => setOpenIndex((openIndex + 1) % projects.length)}
+        />
+      )}
     </section>
   );
 }

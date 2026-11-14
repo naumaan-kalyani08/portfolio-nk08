@@ -4,6 +4,7 @@ import {
   BufferGeometry,
   Color,
   Group,
+  NormalBlending,
   Points,
   ShaderMaterial,
   Vector3,
@@ -13,12 +14,21 @@ import { createBase, lerp, simplexNoise } from "./base";
 // A noise-displaced particle sphere + orbit ring. All motion is computed in the
 // vertex shader, so the CPU cost per frame is a handful of uniform updates.
 
+// Dark: glowing additive light. Light: additive light washes out to white on
+// a pale page, so particles become deeper "ink" dots with normal blending.
+const THEMES = {
+  dark: { a: "#6366f1", b: "#5fd6f6", opacity: 1, blending: AdditiveBlending },
+  light: { a: "#4338ca", b: "#0891b2", opacity: 0.85, blending: NormalBlending },
+};
+
 const vertexShader = /* glsl */ `
 uniform float uTime;
 uniform float uProgress;
 uniform float uPixelRatio;
 uniform float uSize;
 uniform vec3 uPointer;
+uniform float uShock;      // 0 → 1 progress of a click shockwave (1 = idle)
+uniform vec3 uShockDir;
 attribute float aRandom;
 varying float vMix;
 varying float vAlpha;
@@ -33,6 +43,11 @@ void main() {
   // Pointer "pull": particles facing the cursor swell outward.
   float facing = max(dot(dir, normalize(uPointer)), 0.0);
   disp += pow(facing, 6.0) * 0.35;
+
+  // Shockwave: a ring that races across the sphere from the click point.
+  float ang = acos(clamp(dot(dir, normalize(uShockDir)), -1.0, 1.0));
+  float band = exp(-pow((ang - uShock * 3.6) * 3.2, 2.0));
+  disp += band * (1.0 - uShock) * (0.55 + aRandom * 0.6);
 
   p += dir * disp;
   // Scroll: particles drift apart as the hero leaves the viewport.
@@ -50,12 +65,13 @@ void main() {
 const fragmentShader = /* glsl */ `
 uniform vec3 uColorA;
 uniform vec3 uColorB;
+uniform float uOpacity;
 varying float vMix;
 varying float vAlpha;
 void main() {
   float d = length(gl_PointCoord - 0.5);
   float a = smoothstep(0.5, 0.05, d);
-  gl_FragColor = vec4(mix(uColorA, uColorB, vMix), a * vAlpha);
+  gl_FragColor = vec4(mix(uColorA, uColorB, vMix), a * vAlpha * uOpacity);
 }
 `;
 
@@ -113,8 +129,11 @@ export function createScene(container, { isMobile }) {
       uPixelRatio: { value: renderer.getPixelRatio() },
       uSize: { value: isMobile ? 34 : 30 },
       uPointer: { value: new Vector3(0, 0, 1) },
-      uColorA: { value: new Color("#6366f1") },
-      uColorB: { value: new Color("#5fd6f6") },
+      uShock: { value: 1 },
+      uShockDir: { value: new Vector3(0, 0, 1) },
+      uColorA: { value: new Color(THEMES.dark.a) },
+      uColorB: { value: new Color(THEMES.dark.b) },
+      uOpacity: { value: 1 },
     },
   });
 
@@ -129,6 +148,9 @@ export function createScene(container, { isMobile }) {
   const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
   let progress = 0;
   let targetProgress = 0;
+  let clock = 0;
+  let shockStart = -10;
+  const SHOCK_DURATION = 1.7;
 
   const resize = (width, height) => {
     base.resize(width, height);
@@ -146,7 +168,9 @@ export function createScene(container, { isMobile }) {
     progress = lerp(progress, targetProgress, Math.min(1, k * 2));
 
     const u = material.uniforms;
+    clock = time;
     u.uTime.value = time;
+    u.uShock.value = Math.min(1, (time - shockStart) / SHOCK_DURATION);
     u.uProgress.value = progress;
     u.uPointer.value.set(pointer.x * 1.5, pointer.y * 1.5, 1);
 
@@ -166,6 +190,22 @@ export function createScene(container, { isMobile }) {
     },
     setProgress: (p) => {
       targetProgress = p;
+    },
+    // Fire a shockwave from a screen-space point (NDC, -1..1).
+    pulse: (x = 0, y = 0) => {
+      shockStart = clock;
+      material.uniforms.uShockDir.value.set(x * 1.5, y * 1.5, 1);
+    },
+    setTheme: (theme) => {
+      const t = THEMES[theme] ?? THEMES.dark;
+      const u = material.uniforms;
+      u.uColorA.value.set(t.a);
+      u.uColorB.value.set(t.b);
+      u.uOpacity.value = t.opacity;
+      if (material.blending !== t.blending) {
+        material.blending = t.blending;
+        material.needsUpdate = true;
+      }
     },
     dispose: base.dispose,
   };

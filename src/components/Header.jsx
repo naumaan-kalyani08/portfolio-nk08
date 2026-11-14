@@ -1,7 +1,23 @@
 import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
+import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
 import { navItems, profile, socials as socialLinks } from "../data/content";
 import { getLenis, scrollToTarget } from "../lib/scroll";
+import ThemeToggle from "./ThemeToggle";
 import "../style/Header.css";
+
+gsap.registerPlugin(ScrambleTextPlugin);
+
+// Sections tracked for the "current section" label next to the logo.
+const SECTIONS = [
+  ["home", "Home"],
+  ["about", "About"],
+  ["services", "Services"],
+  ["work", "Work"],
+  ["experience", "Journey"],
+  ["skills", "Skills"],
+  ["contact", "Contact"],
+];
 
 const menuItems = navItems.map((item, index) => ({ ...item, number: String(index + 1).padStart(2, "0") }));
 const cityLabel = profile.city;
@@ -25,6 +41,7 @@ export default function Header() {
   const [isHidden, setIsHidden] = useState(false);
   const [isHeroInView, setIsHeroInView] = useState(true);
   const [clockLabel, setClockLabel] = useState(getCurrentTimeLabel());
+  const [section, setSection] = useState("Home");
   const menuButtonRef = useRef(null);
   const menuRef = useRef(null);
 
@@ -191,6 +208,37 @@ export default function Header() {
     updateMenuOrigin();
   }, [isScrolled]);
 
+  // Current section = whichever section crosses the middle of the viewport.
+  useEffect(() => {
+    const labels = new Map(SECTIONS);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setSection(labels.get(entry.target.id));
+        });
+      },
+      { rootMargin: "-50% 0px -50% 0px" }
+    );
+    SECTIONS.forEach(([id]) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  // Menu labels scramble on hover.
+  useEffect(() => {
+    const labels = [...menuRef.current.querySelectorAll(".site-menu__label")];
+    const cleanups = labels.map((label) => {
+      const text = label.textContent;
+      const onEnter = () =>
+        gsap.to(label, { duration: 0.6, scrambleText: { text, chars: "ABCDEFGHIJKLMNOPQRSTUVWXYZ", speed: 0.8 }, overwrite: true });
+      label.parentElement.addEventListener("pointerenter", onEnter);
+      return () => label.parentElement.removeEventListener("pointerenter", onEnter);
+    });
+    return () => cleanups.forEach((fn) => fn());
+  }, []);
+
   return (
     <>
       <header className={`site-header ${isScrolled ? "is-scrolled" : ""} ${isHidden && !isMenuOpen ? "is-hidden" : ""}`}>
@@ -206,12 +254,19 @@ export default function Header() {
           >
             <span className="brand__mark">{profile.initials}</span>
             <span className="brand__reg" aria-hidden="true">®</span>
+            <span className="brand__section" aria-hidden="true">
+              <span className="brand__slash">/</span>
+              <span className="brand__section-text" key={section}>
+                {section}
+              </span>
+            </span>
           </a>
 
           <div className="site-header__actions">
             <a
               className="header-talk"
               href="#contact"
+              data-magnetic="0.35"
               onClick={(event) => {
                 event.preventDefault();
                 scrollToTarget("#contact");
@@ -220,10 +275,13 @@ export default function Header() {
               Let&apos;s talk
             </a>
 
+            <ThemeToggle />
+
             <button
               ref={menuButtonRef}
               type="button"
               className={`menu-button ${isMenuOpen ? "is-open" : ""}`}
+              data-magnetic="0.2"
               onClick={handleToggleMenu}
               aria-expanded={isMenuOpen}
               aria-controls="site-menu"
@@ -311,15 +369,6 @@ export default function Header() {
             </div>
           </div>
         </div>
-      </div>
-
-      <div
-        className={`scroll-indicator ${isScrolled ? "is-hidden" : ""}`}
-        aria-hidden={!isHeroInView || isMenuOpen}
-        tabIndex={isHeroInView && !isMenuOpen ? 0 : -1}
-      >
-        <span className="scroll-indicator__label">SCROLL</span>
-        <span className="scroll-indicator__line" />
       </div>
     </>
   );

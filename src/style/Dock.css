@@ -1,0 +1,147 @@
+/* ==========================================================================
+   Dock — macOS-style shelf at the bottom of the hero (and of the laptop
+   screen during the intro). Icons grow upward: items sit on the shelf's
+   bottom edge and their size is --dock-size × --s (set by Dock.jsx).
+   ========================================================================== */
+
+.dock {
+  --dock-size: 50px;
+  --dock-gap: 8px;
+  --dock-glass: rgb(255 255 255 / 0.1);
+  --dock-edge: rgb(255 255 255 / 0.2);
+  --dock-tip-bg: rgb(30 32 44 / 0.92);
+  --dock-tip-fg: #fff;
+  display: flex;
+  justify-content: center;
+}
+
+:root[data-theme="light"] .dock {
+  --dock-glass: rgb(255 255 255 / 0.5);
+  --dock-edge: rgb(255 255 255 / 0.75);
+  --dock-tip-bg: rgb(255 255 255 / 0.95);
+  --dock-tip-fg: #0d0f1e;
+}
+
+.dock__shelf {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--dock-gap);
+  height: calc(var(--dock-size) + 16px);
+  margin: 0;
+  padding: 8px 10px;
+  list-style: none;
+  border-radius: 22px;
+  border: 1px solid var(--dock-edge);
+  background: var(--dock-glass);
+  box-shadow:
+    0 20px 50px -18px rgb(var(--shadow-rgb) / calc(0.7 * var(--shadow-k))),
+    inset 0 1px 0 rgb(255 255 255 / 0.18);
+  -webkit-backdrop-filter: blur(22px) saturate(1.6);
+  backdrop-filter: blur(22px) saturate(1.6);
+}
+
+.dock__item {
+  --s: 1;
+  position: relative;
+  flex: none;
+  width: calc(var(--dock-size) * var(--s));
+  height: calc(var(--dock-size) * var(--s));
+}
+
+/* Ease back when the cursor leaves; follow the cursor 1:1 while inside. */
+.dock__shelf:not(.is-hover) .dock__item {
+  transition: width 0.35s var(--ease-out), height 0.35s var(--ease-out);
+}
+
+.dock__link {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: 24%;
+  outline: none;
+}
+
+.dock__lift {
+  display: block;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+}
+
+.dock__icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.28));
+}
+
+.dock__link:focus-visible .dock__icon {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 3px;
+  border-radius: 24%;
+}
+
+.dock__tip {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  padding: 5px 11px;
+  border-radius: 8px;
+  background: var(--dock-tip-bg);
+  color: var(--dock-tip-fg);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  box-shadow: 0 8px 20px -8px rgb(0 0 0 / 0.5);
+}
+
+.dock__link:hover .dock__tip,
+.dock__link:focus-visible .dock__tip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.dock__running {
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--text);
+  opacity: 0.7;
+  transform: translateX(-50%);
+}
+
+.dock__divider {
+  align-self: stretch;
+  width: 1px;
+  margin: 2px 4px;
+  background: var(--dock-edge);
+}
+
+@media (max-width: 768px) {
+  .dock {
+    --dock-size: 40px;
+    --dock-gap: 6px;
+  }
+  .dock__shelf {
+    padding: 7px 8px;
+    border-radius: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dock {
+    --dock-size: 38px;
+  }
+  .dock__divider,
+  .dock__item--social {
+    display: none;
+  }
+}
